@@ -22,10 +22,6 @@ library
                     , binary
                     , bytestring
                     , cardano-api
-                    , cardano-binary
-                    , cardano-ledger-alonzo
-                    , cardano-ledger-core
-                    , cardano-ledger-shelley-ma
                     , cborg
                     , containers
                     , cryptonite
@@ -41,7 +37,6 @@ library
                     , mtl
                     , multihash-cryptonite
                     , optparse-applicative
-                    , ouroboros-network
                     , serialise
                     , shake
                     , strict-containers
@@ -53,9 +48,12 @@ library
   default-language  : Haskell2010
   ghc-options       : -Wall
 
-executable mantra
+executable marlowe-ici
   main-is           : Main.hs
   hs-source-dirs    : app
   build-depends     : base >= 4.14.3.0
+                    , cardano-api
+                    , marlowe-cli
                     , marlowe-ici
+                    , mtl
   ghc-options       : -Wall

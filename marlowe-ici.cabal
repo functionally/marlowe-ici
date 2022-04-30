@@ -12,6 +12,7 @@ extra-source-files : ReadMe.md
 
 library
     exposed-modules : Language.Marlowe.ICI
+                      Language.Marlowe.ICI.PTree
     hs-source-dirs  : src
     build-depends   : base ^>= 4.14.3.0
                     , aeson
@@ -25,6 +26,7 @@ library
                     , cborg
                     , containers
                     , cryptonite
+                    , data-default
                     , directory
                     , extra
                     , filepath
@@ -37,6 +39,8 @@ library
                     , mtl
                     , multihash-cryptonite
                     , optparse-applicative
+                    , plutus-ledger
+                    , plutus-ledger-api
                     , serialise
                     , shake
                     , strict-containers

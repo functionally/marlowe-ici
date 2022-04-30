@@ -17,9 +17,9 @@ import System.IO
 main :: IO ()
 main =
   do
-    [networkId, socketPath, continue, pointFile] <- getArgs
     hSetBuffering stdout LineBuffering
     hSetBuffering stderr LineBuffering
+    [networkId, socketPath, continue, pointFile] <- getArgs
     let
       connection =
         LocalNodeConnectInfo

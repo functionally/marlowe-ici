@@ -1,0 +1,7 @@
+tmp/
+*.tmp
+*.log
+*.sw?
+*.crt
+*.key
+dist-newstyle/

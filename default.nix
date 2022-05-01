@@ -1,30 +1,38 @@
+########################################################################
+# default.nix -- The top-level nix build file for Marlowe.
+#
+# This file defines various attributes that are used for building and
+# developing Marlowe.
+#
+########################################################################
+{ system ? builtins.currentSystem
+, crossSystem ? null
+, config ? { }
+, sourcesOverride ? { }
+, sources ? import ./nix/sources.nix { inherit system; } // sourcesOverride
+, haskellNix ? import sources.haskell-nix {
+    pkgs = import sources.nixpkgs { inherit system; };
+    sourcesOverride = {
+      hackage = sources.hackage-nix;
+      stackage = sources.stackage-nix;
+    };
+  }
+, packages ? import ./nix { inherit system sources crossSystem config sourcesOverride haskellNix checkMaterialization enableHaskellProfiling source-repo-override; }
+  # An explicit git rev to use, passed when we are in Hydra
+  # Whether to check that the pinned shas for haskell.nix are correct. We want this to be
+  # false, generally, since it does more work, but we set it to true in the CI
+, checkMaterialization ? false
+  # Whether to build our Haskell packages (and their dependencies) with profiling enabled.
+, enableHaskellProfiling ? false
+, source-repo-override ? { }
+}:
 let
-  # Read in the Niv sources
-  sources = import ./nix/sources.nix {};
-  # If ./nix/sources.nix file is not found run:
-  #   niv init
-  #   niv add input-output-hk/haskell.nix -n haskellNix
-
-  # Fetch the haskell.nix commit we have pinned with Niv
-  haskellNix = import sources.haskellNix {};
-  # If haskellNix is not found run:
-  #   niv add input-output-hk/haskell.nix -n haskellNix
-
-  # Import nixpkgs and pass the haskell.nix provided nixpkgsArgs
-  pkgs = import
-    # haskell.nix provides access to the nixpkgs pins which are used by our CI,
-    # hence you will be more likely to get cache hits when using these.
-    # But you can also just use your own, e.g. '<nixpkgs>'.
-    haskellNix.sources.nixpkgs
-    # These arguments passed to nixpkgs, include some patches and also
-    # the haskell.nix functionality itself as an overlay.
-    haskellNix.nixpkgsArgs;
-in pkgs.haskell-nix.project {
-  # 'cleanGit' cleans a source directory based on the files known by git
-  src = pkgs.haskell-nix.haskellLib.cleanGit {
-    name = "haskell-nix-project";
-    src = ./.;
-  };
-  # Specify the GHC version to use.
-  compiler-nix-name = "ghc8107"; # Not required for `stack.yaml` based projects.
+  inherit (packages) pkgs marlowe sources;
+  inherit (marlowe) haskell;
+  inherit (haskell.packages.cardano-wallet.components.exes) cardano-wallet;
+  inherit (haskell.packages.plutus-chain-index.components.exes) plutus-chain-index;
+  inherit (haskell.packages.marlowe-dashboard-server.components.exes) marlowe-dashboard-server;
+in
+rec {
+  inherit pkgs marlowe;
 }

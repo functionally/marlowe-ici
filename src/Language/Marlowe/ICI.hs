@@ -1,9 +1,9 @@
 
 
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE NamedFieldPuns   #-}
-{-# LANGUAGE RecordWildCards  #-}
-{-# LANGUAGE TupleSections    #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 
 
 module Language.Marlowe.ICI (
@@ -13,19 +13,31 @@ module Language.Marlowe.ICI (
 
 import Cardano.Api hiding (Address)
 import Control.Monad.Except
+import Codec.CBOR.Encoding
+import Codec.CBOR.Write
 import Data.Default (Default(..))
+import Data.IPLD.CID (CID)
 import Data.IORef
 import Data.List (nub, sort)
 import Data.Maybe (catMaybes)
 import Language.Marlowe.CLI.Sync
 import Language.Marlowe.CLI.Sync.Types
 import Language.Marlowe.CLI.Types
+import Language.Marlowe.ICI.Ipld (encodeIpld)
+import Language.Marlowe.ICI.Ipfs (putCars)
+import Language.Marlowe.ICI.Cbor (makeCid, toCid)
 import Language.Marlowe.Semantics (MarloweParams(..))
+import Language.Marlowe.Scripts (smallUntypedValidator)
+import Ledger.Scripts (getValidator, toCardanoApiScript)
+import Ledger.Typed.Scripts (validatorScript)
 import Ledger.Tx.CardanoAPI (toCardanoScriptHash)
 import Plutus.V1.Ledger.Api (Address(..), Credential(ScriptCredential))
+import System.IO (hPrint, stderr)
 
-import qualified Language.Marlowe.ICI.PTree as PT
+import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as M
+import qualified Language.Marlowe.ICI.PTree as PT
+import qualified Language.Marlowe.ICI.PTree.Ipld as PT
 
 
 marloweChainIndex :: MonadError CliError m
@@ -39,8 +51,7 @@ marloweChainIndex connection continue pointFile =
     indicesRef <- liftIO $ newIORef def
     watchMarloweWithPrinter connection continue pointFile
       $ process indicesRef
-    indices <- liftIO $ readIORef indicesRef
-    liftIO $ PT.printPTree "" (addressIndex indices)
+--  liftIO $ output indicesRef
 
 
 data IciIndices =
@@ -48,13 +59,15 @@ data IciIndices =
   {
      addresses     :: M.Map ScriptHash ScriptHash
   ,  unspents      :: M.Map TxIn ScriptHash
-  ,  currencyIndex :: PT.PTree String MarloweParams
-  ,  addressIndex  :: PT.PTree String MarloweEvent
+  ,  block         :: BlockHeader
+  ,  currencyIndex :: PT.PTree String CID
+  ,  addressIndex  :: PT.PTree String CID
+  ,  newCids       :: M.Map CID BS.ByteString
   }
 
 
 instance Default IciIndices where
-  def = IciIndices mempty mempty PT.Empty PT.Empty
+  def = IciIndices mempty mempty undefined PT.Empty PT.Empty mempty
 
 
 process :: IORef IciIndices
@@ -64,34 +77,72 @@ process indicesRef me@Parameters{..} =
   do
     indices@IciIndices{..} <- readIORef indicesRef
     let
+      (eventCid, eventBytes) = encodeIpld me
+      (addressCid, addressBytes) = encodeIpld meApplicationAddress
       indices' =
         indices
           {
             addresses     = M.insert (fromMarloweAddress meApplicationAddress) (fromMarloweAddress meApplicationAddress)
                               $ M.insert (fromMarloweAddress mePayoutAddress) (fromMarloweAddress meApplicationAddress)
                                 addresses
-          , currencyIndex = PT.insert (show $ rolesCurrency meParams) meParams
+          , currencyIndex = PT.insert (show $ rolesCurrency meParams) addressCid
                               currencyIndex
-          , addressIndex  = PT.insert (showScriptHash $ fromMarloweAddress meApplicationAddress) me addressIndex
+          , addressIndex  = PT.insert (showScriptHash $ fromMarloweAddress meApplicationAddress) eventCid addressIndex
+          , newCids       = M.insert eventCid eventBytes
+                              $ M.insert addressCid addressBytes
+                                newCids
           }
     writeIORef indicesRef indices'
 process indicesRef me@Transaction{..} =
   do
     indices@IciIndices{..} <- readIORef indicesRef
     let
+      (eventCid, eventBytes) = encodeIpld me
       outUnspents = catMaybes $ fromMarloweOut <$> meOuts
       outAddresses = snd <$> outUnspents
       inAddresses = catMaybes $ (`M.lookup` unspents) . miTxIn <$> meIns
       allAddresses = nub . sort . catMaybes $ (`M.lookup` addresses) <$> (inAddresses <> outAddresses)
-      update ai address = PT.insert (showScriptHash address) me ai
+      update ai address = PT.insert (showScriptHash address) eventCid ai
       indices' =
         indices
           {
             unspents     = M.union unspents $ M.fromList outUnspents
           , addressIndex = foldl update addressIndex allAddresses
+          , newCids      = M.insert eventCid eventBytes newCids
+          , block        = meBlock
           }
     writeIORef indicesRef indices'
+    output indicesRef
 process _ _ = pure ()
+
+
+output :: IORef IciIndices
+       -> IO ()
+output indicesRef =
+  do
+    indices@IciIndices{..} <- readIORef indicesRef
+    let
+      indices' = indices {newCids = mempty}
+      currencyCbor = PT.toCBOR 1000 currencyIndex
+      addressCbor = PT.toCBOR 1000 addressIndex
+      blockCbor = encodeIpld block
+      root =
+        mconcat
+          [
+            encodeMapLen 3
+          , encodeString "block"      <> makeCid (fst blockCbor)
+          , encodeString "currencies" <> makeCid (fst $ head currencyCbor)
+          , encodeString "addresses"  <> makeCid (fst $ head addressCbor )
+          ]
+      rootCid = toCid root
+    writeIORef indicesRef indices'
+    print rootCid
+    result <- putCars
+      $ [(rootCid, toStrictByteString root), blockCbor]
+      <> currencyCbor
+      <> addressCbor
+      <> M.toList newCids
+    either (hPrint stderr) (const $ pure()) result
 
 
 fromMarloweOut :: MarloweOut

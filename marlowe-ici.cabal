@@ -12,9 +12,13 @@ extra-source-files : ReadMe.md
 
 library
     exposed-modules : Language.Marlowe.ICI
+                      Language.Marlowe.ICI.Cbor
+                      Language.Marlowe.ICI.Ipfs
+                      Language.Marlowe.ICI.Ipld
                       Language.Marlowe.ICI.PTree
+                      Language.Marlowe.ICI.PTree.Ipld
     hs-source-dirs  : src
-    build-depends   : base ^>= 4.14.3.0
+    build-depends   : base >= 4.9 && < 5
                     , aeson
                     , aeson-pretty
                     , base16-bytestring
@@ -24,6 +28,7 @@ library
                     , bytestring
                     , cardano-api
                     , cborg
+                    , cborg-json
                     , containers
                     , cryptonite
                     , data-default
@@ -43,6 +48,7 @@ library
                     , plutus-ledger-api
                     , serialise
                     , shake
+                    , split
                     , strict-containers
                     , text
                     , transformers
@@ -55,7 +61,7 @@ library
 executable marlowe-ici
   main-is           : Main.hs
   hs-source-dirs    : app
-  build-depends     : base >= 4.14.3.0
+  build-depends     : base >= 4.9 && < 5
                     , cardano-api
                     , marlowe-cli
                     , marlowe-ici

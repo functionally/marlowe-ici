@@ -15,6 +15,7 @@ import Cardano.Api hiding (Address)
 import Control.Monad.Except
 import Codec.CBOR.Encoding
 import Codec.CBOR.Write
+import Data.Aeson (toJSON)
 import Data.Default (Default(..))
 import Data.IPLD.CID (CID)
 import Data.IORef
@@ -24,17 +25,15 @@ import Language.Marlowe.CLI.Sync
 import Language.Marlowe.CLI.Sync.Types
 import Language.Marlowe.CLI.Types
 import Language.Marlowe.ICI.Ipld (encodeIpld)
-import Language.Marlowe.ICI.Ipfs (putCars)
+import Language.Marlowe.ICI.Ipfs (publish, putCars)
 import Language.Marlowe.ICI.Cbor (makeCid, toCid)
 import Language.Marlowe.Semantics (MarloweParams(..))
-import Language.Marlowe.Scripts (smallUntypedValidator)
-import Ledger.Scripts (getValidator, toCardanoApiScript)
-import Ledger.Typed.Scripts (validatorScript)
 import Ledger.Tx.CardanoAPI (toCardanoScriptHash)
 import Plutus.V1.Ledger.Api (Address(..), Credential(ScriptCredential))
 import System.IO (hPrint, stderr)
 
 import qualified Data.ByteString as BS
+import qualified Data.ByteString.Lazy.Char8 as LBS8
 import qualified Data.Map.Strict as M
 import qualified Language.Marlowe.ICI.PTree as PT
 import qualified Language.Marlowe.ICI.PTree.Ipld as PT
@@ -136,13 +135,15 @@ output indicesRef =
           ]
       rootCid = toCid root
     writeIORef indicesRef indices'
-    print rootCid
     result <- putCars
       $ [(rootCid, toStrictByteString root), blockCbor]
       <> currencyCbor
       <> addressCbor
       <> M.toList newCids
     either (hPrint stderr) (const $ pure()) result
+    result' <- publish "marlowe-ici" . LBS8.pack $ show rootCid <> "\n"
+    either (hPrint stderr) (const $ pure()) result'
+    putStrLn $ show rootCid <> "\t" <> show (toJSON block)
 
 
 fromMarloweOut :: MarloweOut

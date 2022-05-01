@@ -1,6 +1,7 @@
 
 module Language.Marlowe.ICI.Ipfs (
   putCars
+, publish
 , ipfsRun
 ) where
 
@@ -29,6 +30,13 @@ putCars =
     . Just
     . toCAR
   
+
+publish :: String
+        -> LBS.ByteString
+        -> IO (Either String String)
+publish topic =
+  ipfsRun ["pubsub", "pub", topic]
+    . Just
 
 
 ipfsRun :: [String]

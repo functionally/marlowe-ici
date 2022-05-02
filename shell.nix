@@ -16,6 +16,7 @@ let
     hlint
   # pointfree
     updateMaterialized
+    pkgs.nodejs-16_x
   ]);
 
 in

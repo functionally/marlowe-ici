@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="view.css" type="text/css" rel="stylesheet"/>
+    <script src="controller.js" type="application/javascript"> </script>
+    <title>Marlowe IPLD Chain Index</title>
+  </head>
+  <body id="uiBody" onload="Controller.initialize()">
+    <h1>Marlowe IPLD Chain Index</h1>
+    <div>
+      <p id="uiMessage"/>
+      <p>Slot: <span id="uiSlotNo" class="pre"/></p>
+      <p>Block: <span id="uiBlockNo" class="pre"/></p>
+      <p>Block Hash: <span id="uiBlockHash" class="pre"/></p>
+      <p>IPLD CID for Chain index: <span id="uiIndexCid" class="pre"/></p>
+      <p>Latest transaction:</p>
+      <div id="uiMarloweEvent" class="pre"/>
+    </div>
+  </body>
+</html>

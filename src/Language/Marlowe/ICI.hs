@@ -15,7 +15,7 @@ import Cardano.Api hiding (Address)
 import Control.Monad.Except
 import Codec.CBOR.Encoding
 import Codec.CBOR.Write
-import Data.Aeson (toJSON)
+import Data.Aeson ((.=), encode, object)
 import Data.Default (Default(..))
 import Data.IPLD.CID (CID)
 import Data.IORef
@@ -25,7 +25,7 @@ import Language.Marlowe.CLI.Sync
 import Language.Marlowe.CLI.Sync.Types
 import Language.Marlowe.CLI.Types
 import Language.Marlowe.ICI.Ipld (encodeIpld)
-import Language.Marlowe.ICI.Ipfs (publish, putCars)
+import Language.Marlowe.ICI.Ipfs (publish, putCars, rename)
 import Language.Marlowe.ICI.Cbor (makeCid, toCid)
 import Language.Marlowe.Semantics (MarloweParams(..))
 import Ledger.Tx.CardanoAPI (toCardanoScriptHash)
@@ -33,8 +33,9 @@ import Plutus.V1.Ledger.Api (Address(..), Credential(ScriptCredential))
 import System.IO (hPrint, stderr)
 
 import qualified Data.ByteString as BS
-import qualified Data.ByteString.Lazy.Char8 as LBS8
+import qualified Data.ByteString.Char8 as BS8
 import qualified Data.Map.Strict as M
+import qualified Data.Set as S
 import qualified Language.Marlowe.ICI.PTree as PT
 import qualified Language.Marlowe.ICI.PTree.Ipld as PT
 
@@ -50,23 +51,24 @@ marloweChainIndex connection continue pointFile =
     indicesRef <- liftIO $ newIORef def
     watchMarloweWithPrinter connection continue pointFile
       $ process indicesRef
---  liftIO $ output indicesRef
 
 
 data IciIndices =
   IciIndices
   {
-     addresses     :: M.Map ScriptHash ScriptHash
-  ,  unspents      :: M.Map TxIn ScriptHash
-  ,  block         :: BlockHeader
-  ,  currencyIndex :: PT.PTree String CID
-  ,  addressIndex  :: PT.PTree String CID
-  ,  newCids       :: M.Map CID BS.ByteString
+    addresses     :: M.Map ScriptHash ScriptHash
+  , unspents      :: M.Map TxIn ScriptHash
+  , block         :: BlockHeader
+  , currencyIndex :: PT.PTree String CID
+  , addressIndex  :: PT.PTree String CID
+  , newCids       :: M.Map CID BS.ByteString
+--, newAddresses  :: S.Set ScriptHash
+  , newAddresses  :: [MarloweEvent]
   }
 
 
 instance Default IciIndices where
-  def = IciIndices mempty mempty undefined PT.Empty PT.Empty mempty
+  def = IciIndices mempty mempty undefined PT.Empty PT.Empty mempty mempty
 
 
 process :: IORef IciIndices
@@ -90,6 +92,7 @@ process indicesRef me@Parameters{..} =
           , newCids       = M.insert eventCid eventBytes
                               $ M.insert addressCid addressBytes
                                 newCids
+--        , newAddresses  = S.insert (fromMarloweAddress meApplicationAddress) newAddresses
           }
     writeIORef indicesRef indices'
 process indicesRef me@Transaction{..} =
@@ -109,6 +112,8 @@ process indicesRef me@Transaction{..} =
           , addressIndex = foldl update addressIndex allAddresses
           , newCids      = M.insert eventCid eventBytes newCids
           , block        = meBlock
+--        , newAddresses = (S.fromList allAddresses) `S.union` newAddresses
+          , newAddresses = me : newAddresses
           }
     writeIORef indicesRef indices'
     output indicesRef
@@ -121,7 +126,12 @@ output indicesRef =
   do
     indices@IciIndices{..} <- readIORef indicesRef
     let
-      indices' = indices {newCids = mempty}
+      indices' =
+        indices
+          {
+            newCids      = mempty
+          , newAddresses = mempty
+          }
       currencyCbor = PT.toCBOR 1000 currencyIndex
       addressCbor = PT.toCBOR 1000 addressIndex
       blockCbor = encodeIpld block
@@ -134,6 +144,7 @@ output indicesRef =
           , encodeString "addresses"  <> makeCid (fst $ head addressCbor )
           ]
       rootCid = toCid root
+      BlockHeader (SlotNo slotNo) blockHash (BlockNo blockNo) = block
     writeIORef indicesRef indices'
     result <- putCars
       $ [(rootCid, toStrictByteString root), blockCbor]
@@ -141,9 +152,22 @@ output indicesRef =
       <> addressCbor
       <> M.toList newCids
     either (hPrint stderr) (const $ pure()) result
-    result' <- publish "marlowe-ici" . LBS8.pack $ show rootCid <> "\n"
+    result' <-
+      publish "marlowe-ici"
+        . (<> "\n")
+        . encode
+        $ object
+          [
+            "CID"       .= show rootCid
+          , "slot"      .= slotNo
+          , "block"     .= blockNo
+          , "hash"      .= blockHash
+          , "addresses" .= newAddresses
+          ]
     either (hPrint stderr) (const $ pure()) result'
-    putStrLn $ show rootCid <> "\t" <> show (toJSON block)
+--  result'' <- rename "marlowe-ici" $ show rootCid
+--  either (hPrint stderr) (const $ pure()) result''
+    putStrLn $ "CID " <> show rootCid <> ", Slot " <> show slotNo <> ", Block " <> show blockNo <> ", Hash " <> BS8.unpack (serialiseToRawBytesHex blockHash)
 
 
 fromMarloweOut :: MarloweOut

@@ -2,6 +2,7 @@
 module Language.Marlowe.ICI.Ipfs (
   putCars
 , publish
+, rename
 , ipfsRun
 ) where
 
@@ -37,6 +38,13 @@ publish :: String
 publish topic =
   ipfsRun ["pubsub", "pub", topic]
     . Just
+
+
+rename :: String
+       -> String
+       -> IO (Either String String)
+rename key value =
+  ipfsRun ["name", "publish", "--key=" <> key, value] Nothing
 
 
 ipfsRun :: [String]

@@ -9,11 +9,13 @@
   "dependencies": {
     "ipfs-core": "^0.14.3",
     "ipfs-http-client": "^56.0.3",
+    "libp2p-websockets": "^0.16.2",
     "multiaddr": "^10.0.1",
     "multiformats": "^9.6.4",
     "renderjson": "^1.4.0"
   },
   "devDependencies": {
+    "@libp2p/webrtc-star-signalling-server": "^1.0.4",
     "eslint": "^8.14.0",
     "webpack": "^4.46.0",
     "webpack-cli": "^4.9.2",

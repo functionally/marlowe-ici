@@ -1,9 +1,42 @@
 
+table {
+  border-collapse: collapse;
+}
+
+td {
+  padding: 5px;
+}
+
+td {
+  border: 2px solid;
+}
+
 .pre {
-  font-family: monospace
-; white-space: pre
+  font-family: monospace;
+  white-space: pre
+}
+
+.addresses ul {
+  list-style: none;
+  font-size: xx-small;
+  padding-left: 0;
+}
+
+.section {
+  text-align: center;
+  font-weight: bold;
+}
+
+
+#uiInfo {
+  float: left;
+}
+
+#uiLatest {
+  float: left;
+  margin-left: 15px;
 }
 
 #uiMarloweEvent {
-  font-size: xx-small
+  font-size: xx-small;
 }

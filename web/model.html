@@ -7,15 +7,55 @@
     <title>Marlowe IPLD Chain Index</title>
   </head>
   <body id="uiBody" onload="Controller.initialize()">
-    <h1>Marlowe IPLD Chain Index</h1>
     <div>
-      <p id="uiMessage"/>
-      <p>Slot: <span id="uiSlotNo" class="pre"/></p>
-      <p>Block: <span id="uiBlockNo" class="pre"/></p>
-      <p>Block Hash: <span id="uiBlockHash" class="pre"/></p>
-      <p>IPLD CID for Chain index: <span id="uiIndexCid" class="pre"/></p>
-      <p>Latest transaction:</p>
-      <div id="uiMarloweEvent" class="pre"/>
+      <div id="uiInfo">
+        <h1>Marlowe IPLD Chain Index</h1>
+        <table>
+          <tbody>
+            <tr>
+              <td colspan="2" class="section">Browser libp2p Node Information</td>
+            </tr>
+            <tr>
+              <td>Identifier</td>
+              <td id="uiId" class="pre"/>
+            </tr>
+            <tr>
+              <td>Addresses</td>
+              <td id="uiAddresses" class="pre addresses"/>
+            </tr>
+            <tr>
+              <td>Peers</td>
+              <td id="uiPeers" class="pre addresses"/>
+            </tr>
+            <tr>
+              <td colspan="2" class="section">Blockchain Information</td>
+            </tr>
+            <tr>
+              <td>Slot</td>
+              <td id="uiSlotNo" class="pre"/>
+            </tr>
+            <tr>
+              <td>Block</td>
+              <td id="uiBlockNo" class="pre"/>
+            </tr>
+            <tr>
+              <td>Block Hash</td>
+              <td id="uiBlockHash" class="pre"/>
+            </tr>
+            <tr>
+              <td colspan="2" class="section">IPLD Chain Index</td>
+            </td>
+            <tr>
+              <td>CID</td>
+              <td id="uiIndexCid" class="pre"/>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="uiLatest">
+        <h3>Latest transaction:</h3>
+        <div id="uiMarloweEvent" class="pre"/>
+      </div>
     </div>
   </body>
 </html>

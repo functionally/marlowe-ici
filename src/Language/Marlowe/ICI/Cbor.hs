@@ -54,7 +54,7 @@ toCAR cbs =
 toCid :: Encoding -> CID
 toCid =
   newCidV1 DagCbor
-    . (Crypto.hash :: BS.ByteString -> Crypto.Digest Crypto.SHA3_256)
+    . (Crypto.hash :: BS.ByteString -> Crypto.Digest Crypto.SHA256)
     . toStrictByteString
 
 makeCid :: CID

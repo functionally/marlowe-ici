@@ -40,7 +40,7 @@ toCBOR chunkSize (Leaf vs) =
             : fmap makeCid vs'
         cid =
           newCidV1 DagCbor
-            $ (Crypto.hash :: BS.ByteString -> Crypto.Digest Crypto.SHA3_256) bytes
+            $ (Crypto.hash :: BS.ByteString -> Crypto.Digest Crypto.SHA256) bytes
       in
         (cid, bytes)
   in
@@ -64,7 +64,7 @@ toCBOR chunkSize (Node tree) =
         ]
     cid =
       newCidV1 DagCbor
-        $ (Crypto.hash :: BS.ByteString -> Crypto.Digest Crypto.SHA3_256) bytes
+        $ (Crypto.hash :: BS.ByteString -> Crypto.Digest Crypto.SHA256) bytes
   in
     (cid, bytes)
       : concat (M.elems children)

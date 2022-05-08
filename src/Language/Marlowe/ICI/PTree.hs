@@ -7,6 +7,7 @@
 module Language.Marlowe.ICI.PTree (
   PTree(..)
 , insert
+, isEmpty
 , printPTree
 ) where
 
@@ -42,6 +43,12 @@ printPTree indent (Node tree) =
     |
       (k, tree') <- M.assocs tree
     ]
+
+
+isEmpty :: PTree k v
+        -> Bool
+isEmpty Empty = True
+isEmpty _     = False
 
 
 insert :: Ord k

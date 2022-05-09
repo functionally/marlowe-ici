@@ -15,3 +15,12 @@ https://docs.libp2p.io/concepts/circuit-relay/
 
 
 https://github.com/ipfs-examples/js-ipfs-examples/blob/301dfd4f1859572506df3633271bc901e8af759c/examples/browser-exchange-files/src/app.js
+
+
+
+signalling server:
+~/go/bin/libp2p-relay-daemon -config config
+
+
+webrtc-star server:
+npx webrtc-star

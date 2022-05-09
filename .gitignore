@@ -5,3 +5,4 @@ tmp/
 dist-newstyle/
 *.socket
 *.point
+go-libp2p-relay-daemon/

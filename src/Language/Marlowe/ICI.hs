@@ -55,7 +55,7 @@ marloweChainIndex connection continue pointFile =
           ChainPoint s _      -> s
           ChainPointAtGenesis -> 0
     indicesRef <- liftIO $ newIORef def
-    watchMarloweWithPrinter connection True continue pointFile
+    watchMarloweWithPrinter connection False continue pointFile
       $ process startReporting indicesRef
 
 

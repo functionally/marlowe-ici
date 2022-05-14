@@ -1,6 +1,6 @@
 cabal-version      : 3.0
 name               : marlowe-ici
-version            : 0.1.1.0
+version            : 0.1.1.1
 synopsis           : An IPFS chain index for Marlowe.
 license            : Apache-2.0
 license-file       : LICENSE
@@ -63,7 +63,9 @@ executable marlowe-ici
   hs-source-dirs    : app
   build-depends     : base >= 4.9 && < 5
                     , cardano-api
+                    , marlowe
                     , marlowe-cli
                     , marlowe-ici
                     , mtl
+                    , text
   ghc-options       : -Wall

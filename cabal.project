@@ -28,8 +28,8 @@ allow-newer:
 source-repository-package
   type: git
   location: https://github.com/input-output-hk/marlowe-cardano.git
-  tag: 0d82b9bfbc4c6c9727da72b3eb4228c1889357f9
-  --sha256: 0bvpbd2h1sv4vxiscj7rarlkvlz8ywaxxifyjjk19wqnlq4x2m1s
+  tag: 963e1c0b2571714cf480913debdb8bc5e1ff4e2a
+  --sha256: 141phx8l5zilyp8q6kib3dxfw3749lngb8k25a7lc5axq4x90qfy
   subdir:
     marlowe
     marlowe-cli

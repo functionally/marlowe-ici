@@ -1,27 +1,29 @@
-{ system ? builtins.currentSystem
-, enableHaskellProfiling ? false
-, packages ? import ./. { inherit system enableHaskellProfiling; }
-}:
-
 let
 
-  inherit (packages) pkgs marlowe;
-  inherit (marlowe) haskell;
-
-  localInputs = (with marlowe; [
-    cabal-install
-    haskell-language-server
-    haskell-language-server-wrapper
-    hie-bios
-    hlint
-  # pointfree
-    updateMaterialized
-    pkgs.nodejs-16_x
-  ]);
+  project = import ./default.nix;
 
 in
 
-  haskell.project.shellFor {
-    nativeBuildInputs = localInputs;
+  project.shellFor {
+
+    packages = ps: with ps; [
+      marlowe-ici
+    ];
+
     withHoogle = false;
+
+    tools = {
+      cabal                   = "latest";
+      ghcid                   = "latest";
+      haskell-language-server = "latest";
+      hie-bios                = "latest";
+      hindent                 = "latest";
+      hlint                   = "latest";
+      pointfree               = "latest";
+    };
+
+    buildInputs = [ (import <nixpkgs> {}).git ];
+
+    exactDeps = true;
+
   }

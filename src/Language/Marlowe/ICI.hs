@@ -177,11 +177,11 @@ output startReporting indicesRef =
             . encode
             $ object
               [
-                "CID"       .= show rootCid
-              , "slot"      .= slotNo
-              , "block"     .= blockNo
-              , "hash"      .= blockHash
-              , "addresses" .= newAddresses
+                "CID"    .= show rootCid
+              , "slot"   .= slotNo
+              , "block"  .= blockNo
+              , "hash"   .= blockHash
+              , "latest" .= newAddresses
               ]
         either (hPrint stderr) (const $ pure()) result'
         putStrLn $ "CID " <> show rootCid <> ", Slot " <> show slotNo <> ", Block " <> show blockNo <> ", Hash " <> BS8.unpack (serialiseToRawBytesHex blockHash)

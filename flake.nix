@@ -24,7 +24,8 @@
               };
               # Non-Haskell shell tools go here
               shell.buildInputs = with pkgs; [
-                nixpkgs-fmt
+                nodejs-17_x
+                go_1_17
               ];
             };
         })

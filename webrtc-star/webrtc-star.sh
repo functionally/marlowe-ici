@@ -10,4 +10,4 @@ trap "nginx -p $PWD -c nginx.conf -e nginx.tmp/error.log -s stop" EXIT
 
 nginx -p $PWD -c nginx.conf -e nginx.tmp/error.log
 
-npx webrtc-star --host 0.0.0.0 --port 4008 --metrics false
+npx webrtc-star --host 0.0.0.0 --port 4005 --metrics false

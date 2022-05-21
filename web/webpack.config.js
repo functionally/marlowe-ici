@@ -10,9 +10,10 @@ module.exports = {
   , library       : "Controller"
   },
   devServer: {
+    allowedHosts: "all",
     static: ".",
-    host: "127.0.0.1",
-    port: 3000,
+    host: "0.0.0.0",
+    port: 4010,
     headers: {
       "Access-Control-Allow-Origin": "http://127.0.0.1",
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",

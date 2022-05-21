@@ -8,6 +8,7 @@
   "main": "src/controller.js",
   "dependencies": {
     "@ipld/dag-cbor": "^7.0.1",
+    "http-server": "^14.1.0",
     "ipfs-core": "^0.14.3",
     "ipfs-http-client": "^56.0.3",
     "libp2p-noise": "^4.0.0",

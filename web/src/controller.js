@@ -21,21 +21,53 @@ const filters = require('libp2p-websockets/src/filters')
 const transportKey = WS.prototype[Symbol.toStringTag]
 
 
-export const topic = "marlowe-ici"
+export let topic = "marlowe-ici"
 
-const ipfsInBrowser = true
+export const MODE_SERVE_LOCAL   = 0
+export const MODE_BROWSE_LOCAL  = 1
+export const MODE_BROWSE_STATIC = 2
 
-export const home = "/ip4/127.0.0.1/tcp/5001"
+export const mode = MODE_BROWSE_STATIC
 
-export const homes = [
-  "/ip4/127.0.0.1/tcp/4011/ws/p2p/QmSCkKmKjYmPVQGaSRFRjKG28xz5iK3zPK6uCcEE4nxMPB",       // oryx ipfs
-  "/ip4/127.0.0.1/tcp/4003/ws/p2p/12D3KooWDur2A4JM46Kcay71FgVMjRmgHsvN5iFswiHghCtoQYHA", // oryx relay
-//"/ip4/192.168.86.42/tcp/4011/ws/p2p/QmeTpDf65kim2LsRDcRRWmsGkqZWqMB2GzfrPpckN1vuym",   // gazelle ipfs
+const home = "/ip4/127.0.0.1/tcp/5001"
+
+const homes = [
+  [ // MODE_SERVE_LOCAL
+  ],
+  [ // MODE_BROWSE_LOCAL
+    "/ip4/127.0.0.1/tcp/4011/ws/p2p/QmSCkKmKjYmPVQGaSRFRjKG28xz5iK3zPK6uCcEE4nxMPB"      , // oryx ipfs
+    "/ip4/127.0.0.1/tcp/4003/ws/p2p/12D3KooWDur2A4JM46Kcay71FgVMjRmgHsvN5iFswiHghCtoQYHA", // oryx relay
+    "/ip4/192.168.86.42/tcp/4011/ws/p2p/QmeTpDf65kim2LsRDcRRWmsGkqZWqMB2GzfrPpckN1vuym"  , // gazelle ipfs
+  ],
+  [ // MODE_BROWSE_STATIC
+    "/dns4/substrate.functionally.dev/tcp/4008/wss/p2p/12D3KooWAX1YJxFMBvvayA8d7adVnieKqcqEYhEJTG1gQghUJt8h",
+  ],
+]
+
+const swarms = [
+  [ // MODE_SERVE_LOCAL
+  ],
+  [ // MODE_BROWSE_LOCAL
+    "/dns4/substrate.functionally.dev/tcp/4009/wss/p2p-webrtc-star/",
+    "/dns4/substrate.functionally.dev/tcp/4005/ws/p2p-webrtc-star/" ,
+    "/ip4/127.0.0.1/tcp/4005/wss/p2p-webrtc-star"                   ,
+  ],
+  [ // MODE_BROWSE_STATIC
+    "/dns4/substrate.functionally.dev/tcp/4009/wss/p2p-webrtc-star/",
+    "/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star"  ,
+    "/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star"  ,
+  ]
+]
+
+const modes = [
+  filters.all         , // MODE_SERVE_LOCAL
+  filters.dnsWsOrWss  , // MODE_BROWSE_LOCAL
+  filters.dnsWss      , // MODE_BROWSE_STATIC
 ]
 
 
 async function connectHomes() {
-  Promise.all(homes.map(address => ipfs.swarm.connect(address)))
+  Promise.all(homes[mode].map(address => ipfs.swarm.connect(address)))
 }
 
 export function makeCID(cid) {
@@ -63,10 +95,9 @@ function updateTip(msg) {
     uiSlotNo.innerText = tip.slot
     uiBlockNo.innerText = tip.block
     uiBlockHash.innerText = tip.hash
-    uiIndexCid.innerHTML = "<a href='http://127.0.0.1:5001/ipfs/bafybeihcyruaeza7uyjd6ugicbcrqumejf6uf353e5etdkhotqffwtguva/#/explore/ipfs/" + tip.CID + "' target='_blank'>" + tip.CID + "</a>"
-    if (tip.addresses.length > 0)
-//    uiMarloweEvent.innerText = JSON.stringify(tip.addresses, null, 2)
-      uiMarloweEvent.prepend(renderjson(tip.addresses[0]))
+    uiIndexCid.innerHTML = "<a href='https://substrate.functionally.dev:4010/ipfs/bafybeihcyruaeza7uyjd6ugicbcrqumejf6uf353e5etdkhotqffwtguva/#/explore/ipfs/" + tip.CID + "' target='marlowe-ici'>" + tip.CID + "</a>"
+    if (tip.latest.length > 0)
+      uiMarloweEvent.prepend(renderjson(tip.latest[0]))
   } else
     console.warn("Unexpected message on \"marlowe-ici\" topic.", msg.data)
 }
@@ -78,9 +109,16 @@ export async function subscribe() {
 
 export let ipfs = null
 
-export async function initialize() {
+export async function initialize(theTopic) {
 
-  if (ipfsInBrowser)
+  topic = theTopic
+  uiTopic.innerText = topic
+
+  renderjson.set_icons('⊞', '⊟')
+
+  if (mode == MODE_SERVE_LOCAL)
+    ipfs = CLIENT.create(home)
+  else
     ipfs = await IPFS.create({
       preload: {
         enabled: false
@@ -101,10 +139,7 @@ export async function initialize() {
           },
           transport: {
             [transportKey]: {
-              // FIXME: Remove to limit to DNS or WSS.
-              filter: filters.all
-//            filter: filters.dnsWss
-//            filter: filters.dnsWsOrWss
+              filter: modes[mode]
             }
           },
           pubsub: {
@@ -114,13 +149,8 @@ export async function initialize() {
       },
       config: {
         Addresses: {
-          Bootstrap: [
-          ],
-          Swarm: [
-            "/ip4/127.0.0.1/tcp/9090/wss/p2p-webrtc-star",
-//          "/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
-//          "/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
-          ]
+          Bootstrap: [],
+          Swarm: swarms[mode]
         }
       },
       relay: {
@@ -130,8 +160,6 @@ export async function initialize() {
         }
       }
     })
-  else
-    ipfs = CLIENT.create(home)
 
   const info = await ipfs.id()
   uiId.innerText = info.id
@@ -142,7 +170,7 @@ export async function initialize() {
     uiPeers.innerHTML = "<ul>" + peers.reverse().map(peer => "<li class='pre'>" + (peer.addr.toString().indexOf('/p2p/') >= 0 ? peer.addr : peer.addr + "/p2p/" + peer.peer) + "</li>").join("") + "</ul>"
   }, 5000)
 
-  await connectHomes()
+  setTimeout( async () => { await connectHomes() },   5000)
   setInterval(async () => { await connectHomes() }, 150000)
 
   subscribe()

@@ -1,0 +1,42 @@
+
+table {
+  border-collapse: collapse;
+}
+
+td {
+  padding: 5px;
+  border-color: lightgray;
+  border-style: solid;
+  border-width: 2px;
+  vertical-align: top;
+}
+
+.pre {
+  font-family: monospace;
+  white-space: pre
+}
+
+.addresses ul {
+  list-style: none;
+  font-size: xx-small;
+  padding-left: 0;
+}
+
+.section {
+  text-align: center;
+  font-weight: bold;
+}
+
+
+#uiInfo {
+  float: left;
+}
+
+#uiLatest {
+  float: left;
+  margin-left: 15px;
+}
+
+#uiMarloweEvent {
+//font-size: x-small;
+}

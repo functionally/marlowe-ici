@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="view.css" type="text/css" rel="stylesheet"/>
+    <script src="controller.js" type="application/javascript"> </script>
+    <title>Marlowe IPLD Chain Index</title>
+  </head>
+  <body id="uiBody" onload="Controller.initialize('marlowe-ici')">
+    <div>
+      <div id="uiInfo">
+        <h1>Marlowe IPLD Chain Index</h1>
+        <h4>A decentralized, distributed chain index for <a target="marlowe-ici" href="https://marlowe-finance.io/">Marlowe</a> transactions on the <a target="marlowe-ici" href="https://cardano.org/">Cardano blockchain</a>.</h4>
+        <ul>
+          <li>Available at &lt;<a target="marlowe-ici" href="https://substrate.functionally.dev:4010/ipns/k51qzi5uqu5dlg4r3olegweltx6f64rlietex6kmfl4kq00heyqvwhrbaofbg0">ipns://k51qzi5uqu5dlg4r3olegweltx6f64rlietex6kmfl4kq00heyqvwhrbaofbg0</a>&gt;<br/> via <a target="marlowe-ici" href="https://ipfs.github.io/public-gateway-checker/">IPFS gateways</a>.</li>
+          <li>The key <code>k51qzi5uqu5dlg4r3olegweltx6f64rlietex6kmfl4kq00heyqvwhrbaofbg0</code><br/>ensures authenticity and integrity of this data feed.</li>
+          <li>Source code: &lt;<a target="marlowe-ici" href="https://github.com/bwbush/marlowe-ici/">https://github.com/bwbush/marlowe-ici/</a>&gt;.</li>
+        </ul>
+        <table>
+          <tbody>
+            <tr>
+              <td colspan="2" class="section">IPLD Chain Index</td>
+            </td>
+            <tr>
+              <td>CID</td>
+              <td id="uiIndexCid" class="pre"/>
+            </tr>
+            <tr>
+              <td>Pubsub Topic</td>
+              <td id="uiTopic" class="pre"/>
+            </tr>
+            <tr>
+              <td colspan="2" class="section">Blockchain Information</td>
+            </tr>
+            <tr>
+              <td>Slot</td>
+              <td id="uiSlotNo" class="pre"/>
+            </tr>
+            <tr>
+              <td>Block</td>
+              <td id="uiBlockNo" class="pre"/>
+            </tr>
+            <tr>
+              <td>Block Hash</td>
+              <td id="uiBlockHash" class="pre"/>
+            </tr>
+            <tr>
+              <td colspan="2" class="section">LibP2P Node Information</td>
+            </tr>
+            <tr>
+              <td>Identifier</td>
+              <td id="uiId" class="pre"/>
+            </tr>
+            <tr>
+              <td>Addresses</td>
+              <td id="uiAddresses" class="pre addresses"/>
+            </tr>
+            <tr>
+              <td>Peers</td>
+              <td id="uiPeers" class="pre addresses"/>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="uiLatest">
+        <h3>Latest transactions:</h3>
+        <div id="uiMarloweEvent" class="pre"/>
+      </div>
+    </div>
+  </body>
+</html>

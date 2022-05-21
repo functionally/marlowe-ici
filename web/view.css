@@ -37,6 +37,15 @@ td {
   margin-left: 15px;
 }
 
+#uiCopy {
+  cursor: pointer;
+}
+
+#uiClipboard {
+  display: none;
+  width: 1px;
+}
+
 #uiMarloweEvent {
-//font-size: x-small;
+// font-size: x-small;
 }

@@ -12,7 +12,7 @@ import { MPLEX          } from 'libp2p-mplex'
 import { Multiaddr      } from "multiaddr"
 import { NOISE          } from 'libp2p-noise'
 import { WebSockets     } from 'libp2p-websockets'
-import { encode, decode } from "@ipld/dag-cbor"
+// import { encode, decode } from "@ipld/dag-cbor"
 import { WebRTCStar     } from "libp2p-webrtc-star"
 
 
@@ -98,8 +98,18 @@ function updateTip(msg) {
     uiIndexCid.innerHTML = "<a href='https://substrate.functionally.dev:4010/ipfs/bafybeihcyruaeza7uyjd6ugicbcrqumejf6uf353e5etdkhotqffwtguva/#/explore/ipfs/" + tip.CID + "' target='marlowe-ici'>" + tip.CID + "</a>"
     if (tip.latest.length > 0)
       uiMarloweEvent.prepend(renderjson(tip.latest[0]))
+    const certificate = JSON.stringify(tip.certificate)
+    uiCertificate.innerText = certificate.slice(0, 30) + "....." + certificate.slice(-30)
+    uiClipboard.value = certificate
   } else
-    console.warn("Unexpected message on \"marlowe-ici\" topic.", msg.data)
+    console.warn("Unexpected message on \"" + topic + "\" topic.", msg.data)
+}
+
+export function copyCertificate() {
+  uiClipboard.style.display = "inline"
+  uiClipboard.select()
+  document.execCommand("copy")
+  uiClipboard.style.display = "none"
 }
 
 export async function subscribe() {

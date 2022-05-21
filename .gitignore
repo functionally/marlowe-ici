@@ -6,3 +6,6 @@ dist-newstyle/
 *.socket
 *.point
 go-libp2p-relay-daemon/
+atala-prism.jar
+identity.seed
+credential.*

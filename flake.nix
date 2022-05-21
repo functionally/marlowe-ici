@@ -24,6 +24,7 @@
               };
               # Non-Haskell shell tools go here
               shell.buildInputs = with pkgs; [
+                openjdk
 #               nodejs-17_x
 #               go_1_17
               ];

@@ -4,12 +4,13 @@ module Language.Marlowe.ICI.Ipfs (
 , publish
 , rename
 , ipfsRun
+, atalaSign
 ) where
 
 
 import Cardano.Api               (AsType, HasTextEnvelope, deserialiseFromTextEnvelope, serialiseToTextEnvelope)
 import Control.Monad             (unless, void, when)
-import Data.Aeson                (FromJSON, ToJSON, decodeFileStrict, decodeStrict, encode)
+import Data.Aeson                (FromJSON, ToJSON, Value, decodeFileStrict, decodeStrict, encode, encodeFile, object)
 import Data.IPLD.CID (CID)
 import Data.String               (fromString)
 import Development.Shake.Command (CmdOption(..), Exit(..), Stderr(..), Stdout(..), cmd)
@@ -27,7 +28,7 @@ import qualified System.PosixCompat.Files  as FS (createLink)
 putCars :: [(CID, BS.ByteString)]
         -> IO (Either String String)
 putCars =
-  ipfsRun ["dag", "import", "--pin-roots=false"]
+  ipfsRun ["dag", "import", "--pin-roots=true"]
     . Just
     . toCAR
   
@@ -59,3 +60,17 @@ ipfsRun arguments input =
     case code of
       ExitFailure _ -> pure $ Left msg
       ExitSuccess   -> pure $ Right result
+
+
+atalaSign :: Value
+          -> IO (Either String Value)
+atalaSign credential =
+  do
+    encodeFile "credential.json" credential
+    (Exit code, Stderr msg) <-
+       cmd "java" ["-jar", "atala-prism.jar", "sign-credential", "identity.seed", "credential.json", "credential.signed"]
+    result <- decodeFileStrict "credential.signed"
+    case (code, result) of
+      (ExitFailure _, _           ) -> pure $ Left msg
+      (ExitSuccess  , Just result') -> pure $ Right result'
+      _                             -> pure $ Left "Failed to decode JSON result."

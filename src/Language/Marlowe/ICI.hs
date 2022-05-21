@@ -26,7 +26,7 @@ import Language.Marlowe.CLI.Sync
 import Language.Marlowe.CLI.Sync.Types
 import Language.Marlowe.CLI.Types
 import Language.Marlowe.ICI.Ipld (encodeIpld)
-import Language.Marlowe.ICI.Ipfs (publish, putCars)
+import Language.Marlowe.ICI.Ipfs (atalaSign, publish, putCars)
 import Language.Marlowe.ICI.Cbor (makeCid, toCid)
 import Language.Marlowe.Semantics (MarloweParams(..))
 import Ledger.Tx.CardanoAPI (toCardanoScriptHash)
@@ -170,20 +170,22 @@ output startReporting indicesRef =
           <> currencyCbor
           <> addressCbor
           <> M.toList newCids
-        either (hPrint stderr) (const $ pure()) result
+        either (hPrint stderr) (const $ pure ()) result
+        Right certificate <- atalaSign $ object ["marlowe-chain-index" .= show rootCid]
         result' <-
           publish "marlowe-ici"
             . (<> "\n")
             . encode
             $ object
               [
-                "CID"    .= show rootCid
-              , "slot"   .= slotNo
-              , "block"  .= blockNo
-              , "hash"   .= blockHash
-              , "latest" .= newAddresses
+                "CID"         .= show rootCid
+              , "slot"        .= slotNo
+              , "block"       .= blockNo
+              , "hash"        .= blockHash
+              , "latest"      .= newAddresses
+              , "certificate" .= certificate
               ]
-        either (hPrint stderr) (const $ pure()) result'
+        either (hPrint stderr) (const $ pure ()) result'
         putStrLn $ "CID " <> show rootCid <> ", Slot " <> show slotNo <> ", Block " <> show blockNo <> ", Hash " <> BS8.unpack (serialiseToRawBytesHex blockHash)
 
 

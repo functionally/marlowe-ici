@@ -1,5 +1,5 @@
 #!/usr/bin/env nix-shell
-#!nix-shell -i "make -f" -p gnumake nodejs-17_x
+#!nix-shell -i "make -f" -p gnumake nodejs-17_x html-tidy
 
 
 model.cid: ../docs/index.html ../docs/view.css ../docs/controller.js
@@ -24,7 +24,14 @@ serve: controller.js
 controller.js: src/controller.js
 	npx webpack
 
+lint: src/controller.js model.html eslint.json
+	npx eslint -c eslint.json src/controller.js
+	tidy -quiet -o /dev/null model.html
+
+install:
+	npm install
+
 
 .SUFFIXES:
 
-.PHONY: webrtc-star serve-dev serve
+.PHONY: webrtc-star serve-dev serve lint install

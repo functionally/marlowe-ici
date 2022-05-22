@@ -164,15 +164,19 @@ output startReporting indicesRef =
       BlockHeader (SlotNo slotNo) blockHash (BlockNo blockNo) = block
     writeIORef indicesRef indices'
     unless (PT.isEmpty currencyIndex || PT.isEmpty addressIndex)
-      $ do
-        result <- putCars
-          $ [(rootCid, toStrictByteString root), blockCbor]
-          <> currencyCbor
-          <> addressCbor
-          <> M.toList newCids
-        either (hPrint stderr) (const $ pure ()) result
-        unless (current < startReporting)
-          $ do
+      $ if current < startReporting
+          then unless (M.null newCids)
+            $ do
+              result <- putCars $ M.toList newCids
+              either (hPrint stderr) (const $ pure ()) result
+              putStrLn $ "Slot " <> show slotNo <> ", Block " <> show blockNo <> ", Hash " <> BS8.unpack (serialiseToRawBytesHex blockHash)
+          else do
+            result <- putCars
+              $ [(rootCid, toStrictByteString root), blockCbor]
+              <> currencyCbor
+              <> addressCbor
+              <> M.toList newCids
+            either (hPrint stderr) (const $ pure ()) result
             Right certificate <- atalaSign $ object ["marlowe-chain-index" .= show rootCid]
             result' <-
               publish "marlowe-ici"
@@ -188,7 +192,7 @@ output startReporting indicesRef =
                   , "certificate" .= certificate
                   ]
             either (hPrint stderr) (const $ pure ()) result'
-        putStrLn $ "CID " <> show rootCid <> ", Slot " <> show slotNo <> ", Block " <> show blockNo <> ", Hash " <> BS8.unpack (serialiseToRawBytesHex blockHash)
+            putStrLn $ "CID " <> show rootCid <> ", Slot " <> show slotNo <> ", Block " <> show blockNo <> ", Hash " <> BS8.unpack (serialiseToRawBytesHex blockHash)
 
 
 fromMarloweOut :: MarloweOut

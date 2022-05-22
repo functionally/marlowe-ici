@@ -67,10 +67,10 @@ atalaSign :: Value
 atalaSign credential =
   do
     encodeFile "credential.json" credential
-    (Exit code, Stderr msg) <-
+    (Exit code, Stdout info, Stderr msg) <-
        cmd "java" ["-jar", "atala-prism.jar", "sign-credential", "identity.seed", "credential.json", "credential.signed"]
     result <- decodeFileStrict "credential.signed"
     case (code, result) of
-      (ExitFailure _, _           ) -> pure $ Left msg
+      (ExitFailure _, _           ) -> pure $ Left $ info <> msg
       (ExitSuccess  , Just result') -> pure $ Right result'
       _                             -> pure $ Left "Failed to decode JSON result."

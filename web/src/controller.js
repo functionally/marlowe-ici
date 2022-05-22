@@ -94,8 +94,8 @@ function updateTip(msg) {
   if (tip.slot) {
     uiSlotNo.innerText = tip.slot
     uiBlockNo.innerText = tip.block
-    uiBlockHash.innerText = tip.hash
-    uiIndexCid.innerHTML = "<a href='https://substrate.functionally.dev:4010/ipfs/bafybeihcyruaeza7uyjd6ugicbcrqumejf6uf353e5etdkhotqffwtguva/#/explore/ipfs/" + tip.CID + "' target='marlowe-ici'>" + tip.CID + "</a>"
+    uiBlockHash.innerHTML = "<a target='marlowe-ici' href='https://explorer.dev.testnet.marlowe-finance.io/en/block?id=" + tip.hash + "'>" + tip.hash + "</a>"
+    uiIndexCid.innerHTML = "<a target='marlowe-ici' href='https://substrate.functionally.dev:4010/ipfs/bafybeihcyruaeza7uyjd6ugicbcrqumejf6uf353e5etdkhotqffwtguva/#/explore/ipfs/" + tip.CID + "'>" + tip.CID + "</a>"
     if (tip.latest.length > 0)
       uiMarloweEvent.prepend(renderjson(tip.latest[0]))
     const certificate = JSON.stringify(tip.certificate)

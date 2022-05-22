@@ -20,7 +20,33 @@ Web Application
 The JavaScript web application subscribes to the pub/sub topic for the Marlowe index and displays the Marlowe transactions in real-time along with the CID for the current Marlowe index. The application is serverless (i.e., no backend) and discovers the content of the Marlowe index and pub/sub topic using the [WebRTC-Star](https://github.com/libp2p/js-libp2p-webrtc-star#readme) transport and signalling of [libp2p](https://libp2p.io/) via a bootstrapping process.
 
 
-Status and Documentation
-------------------------
+Documentation
+-------------
 
-This application is a work in progress. Documentation on the message and index schemas has yet to be written.
+Detailed documentation will be provided when this application matures.
+
+*   The root of the index DAG contains three entries:
+    *   `block :: BlockHeader` contains the information of the chain point that is being indexed.
+    *   `currencies :: PTree String CID` is a radix trie that maps role currencies to Marlowe transactions.
+    *   `addresses :: PTree String CID` is a radix trie that maps Marlowe addresses to a list of Marlowe transactions that have occurred at that address.
+*   The [radix tries](https://en.wikipedia.org/wiki/Radix_tree) used for the indices branch on bytes of the hash for the address or currency.
+*   The index uses the [IPLD dag-cbor codec](https://ipld.io/docs/codecs/known/dag-cbor/), which maps closely to JSON.
+*   The pub/sub messages are JSON objects with these fields:
+    *   `CID`: IPLD content identifier for the root of the index.
+    *   `slot`: current slot number.
+    *   `block`: current block number.
+    *   `hash`: hash of the current block header.
+    *   `latest`: list of the latest Marlowe transactions in the block.
+    *   `certificate`: Atala PRISM certificate signing the CID of the root index.
+
+
+Status
+------
+
+This application is a work in progress. Planned work includes . . .
+
+*   Major refactoring, clean-up, and optimization of the Haskell code.
+*   Migration of the JavaScript code to PureScript.
+*   Redesign of UI:
+    *   Filtered and faceted browsing of the indices.
+    *   Friendly exploration of latest transactions.

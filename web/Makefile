@@ -4,9 +4,9 @@
 
 model.cid: ../docs/index.html ../docs/view.css ../docs/controller.js
 	ipfs add --quieter --pin=false --recursive ../docs | tee model.cid
+	cat model.cid | xargs ipfs name publish --lifetime=168h --key=marlowe-ici
 	-ipfs pin remote rm --service=pinata --name=marlowe-ici
 	cat model.cid | xargs ipfs pin remote add --service=pinata --name=marlowe-ici
-	cat model.cid | xargs ipfs name publish --lifetime=168h --key=marlowe-ici
 
 ../docs/index.html ../docs/view.css ../docs/controller.js: model.html view.css controller.js
 	cp model.html ../docs/index.html

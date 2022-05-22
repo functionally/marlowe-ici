@@ -7,13 +7,8 @@ import * as CLIENT     from "ipfs-http-client"
 import * as WS         from "libp2p-websockets"
 import * as renderjson from "renderjson"
 
-import { CID            } from "multiformats/cid"
-import { MPLEX          } from 'libp2p-mplex'
-import { Multiaddr      } from "multiaddr"
-import { NOISE          } from 'libp2p-noise'
-import { WebSockets     } from 'libp2p-websockets'
-// import { encode, decode } from "@ipld/dag-cbor"
-import { WebRTCStar     } from "libp2p-webrtc-star"
+import { CID       } from "multiformats/cid"
+import { Multiaddr } from "multiaddr"
 
 
 const filters = require('libp2p-websockets/src/filters')
@@ -23,9 +18,10 @@ const transportKey = WS.prototype[Symbol.toStringTag]
 
 export let topic = "marlowe-ici"
 
-export const MODE_SERVE_LOCAL   = 0
-export const MODE_BROWSE_LOCAL  = 1
-export const MODE_BROWSE_STATIC = 2
+export const MODE_SERVE_LOCAL    = 0
+export const MODE_BROWSE_LOCAL   = 1
+export const MODE_BROWSE_STATIC  = 2
+export const MODE_BROWSE_LIMITED = 3
 
 export const mode = MODE_BROWSE_STATIC
 
@@ -42,6 +38,9 @@ const homes = [
   [ // MODE_BROWSE_STATIC
     "/dns4/substrate.functionally.dev/tcp/4008/wss/p2p/12D3KooWAX1YJxFMBvvayA8d7adVnieKqcqEYhEJTG1gQghUJt8h",
   ],
+  [ // MODE_BROWSE_LIMITED
+    "/dns4/substrate.functionally.dev/tcp/4008/wss/p2p/12D3KooWAX1YJxFMBvvayA8d7adVnieKqcqEYhEJTG1gQghUJt8h",
+  ],
 ]
 
 const swarms = [
@@ -54,21 +53,21 @@ const swarms = [
   ],
   [ // MODE_BROWSE_STATIC
     "/dns4/substrate.functionally.dev/tcp/4009/wss/p2p-webrtc-star/",
-//  "/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star"  ,
-//  "/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star"  ,
-  ]
+    "/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star"  ,
+    "/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star"  ,
+  ],
+  [ // MODE_BROWSE_LIMITED
+    "/dns4/substrate.functionally.dev/tcp/4009/wss/p2p-webrtc-star/",
+  ],
 ]
 
 const modes = [
-  filters.all         , // MODE_SERVE_LOCAL
-  filters.dnsWsOrWss  , // MODE_BROWSE_LOCAL
-  filters.dnsWss      , // MODE_BROWSE_STATIC
+  filters.all       , // MODE_SERVE_LOCAL
+  filters.dnsWsOrWss, // MODE_BROWSE_LOCAL
+  filters.dnsWss    , // MODE_BROWSE_STATIC
+  filters.dnsWss    , // MODE_BROWSE_LIMITED
 ]
 
-
-async function connectHomes() {
-  Promise.all(homes[mode].map(address => ipfs.swarm.connect(address)))
-}
 
 export function makeCID(cid) {
   return CID.parse(cid)
@@ -78,10 +77,13 @@ export function makeMultiaddr(address) {
   return new Multiaddr(address)
 }
 
-
 export async function connect(address) {
   const result = await ipfs.swarm.connect(address)
-  console.info(result)
+  console.debug(result)
+}
+
+function toAddress(peer) {
+  return peer.addr.toString().indexOf('/p2p/') >= 0 ? peer.addr.toString() : peer.addr + "/p2p/" + peer.peer
 }
 
 
@@ -117,6 +119,27 @@ export async function subscribe() {
 }
 
 
+let counter = 0
+
+async function connectHomes() {
+  const peers = (await ipfs.swarm.peers()).map(toAddress)
+  uiPeers.innerHTML = "<ul>" + peers.reverse().map(peer => "<li class='pre'>" + peer + "</li>").join("") + "</ul>"
+  const force = ++counter % 6 == 1
+  async function ensureConnection(address) {
+    if (peers.includes(address)) {
+      if (force) {
+        console.debug("Reconnecting home peer " + address)
+        ipfs.swarm.disconnect(address).then(ipfs.swarm.connect(address))
+      }
+    } else {
+      console.info("Reconnecting lost home peer " + address)
+      ipfs.swarm.connect(address)
+    }
+  }
+  await Promise.all(homes[mode].map(ensureConnection))
+}
+
+
 export let ipfs = null
 
 export async function initialize(theTopic) {
@@ -133,55 +156,32 @@ export async function initialize(theTopic) {
       preload: {
         enabled: false
       },
-      modules: {
-        transport: [WebSockets, WebRTCStar],
-        streamMuxer: [MPLEX],
-        connEncryption: [NOISE]
-      },
       repo: 'marlowe-ici-' + Math.random(),
       libp2p: {
         config: {
-          peerDiscovery: {
-            autoDial: true,
-            webRTCStar: {
-              enabled: true
-            }
-          },
           transport: {
             [transportKey]: {
               filter: modes[mode]
-            }
+            },
           },
           pubsub: {
             enabled: true
-          }
-        }
+          },
+        },
       },
       config: {
         Addresses: {
           Bootstrap: [],
-          Swarm: swarms[mode]
-        }
+          Swarm: swarms[mode],
+        },
       },
-      relay: {
-        enabled: true,
-        hop: {
-          enabled: true
-        }
-      }
     })
 
   const info = await ipfs.id()
   uiId.innerText = info.id
   uiAddresses.innerHTML = "<ul>" + info.addresses.map(address => "<li class='pre'>" + address + "</li>").join("") + "</ul>"
 
-  setInterval(async () => {
-    const peers = await ipfs.swarm.peers()
-    uiPeers.innerHTML = "<ul>" + peers.reverse().map(peer => "<li class='pre'>" + (peer.addr.toString().indexOf('/p2p/') >= 0 ? peer.addr : peer.addr + "/p2p/" + peer.peer) + "</li>").join("") + "</ul>"
-  }, 5000)
-
-  setTimeout( async () => { await connectHomes() },  5000)
-  setInterval(async () => { await connectHomes() }, 60000)
+  setInterval(async () => { await connectHomes() }, 5000)
 
   subscribe()
 

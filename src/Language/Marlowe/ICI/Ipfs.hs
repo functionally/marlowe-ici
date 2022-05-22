@@ -28,7 +28,7 @@ import qualified System.PosixCompat.Files  as FS (createLink)
 putCars :: [(CID, BS.ByteString)]
         -> IO (Either String String)
 putCars =
-  ipfsRun ["dag", "import", "--pin-roots=true"]
+  ipfsRun ["dag", "import", "--pin-roots=false"]
     . Just
     . toCAR
   

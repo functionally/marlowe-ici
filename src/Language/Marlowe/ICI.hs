@@ -163,7 +163,7 @@ output startReporting indicesRef =
       rootCid = toCid root
       BlockHeader (SlotNo slotNo) blockHash (BlockNo blockNo) = block
     writeIORef indicesRef indices'
-    unless (PT.isEmpty currencyIndex || PT.isEmpty addressIndex || current < startReporting)
+    unless (PT.isEmpty currencyIndex || PT.isEmpty addressIndex)
       $ do
         result <- putCars
           $ [(rootCid, toStrictByteString root), blockCbor]
@@ -171,21 +171,23 @@ output startReporting indicesRef =
           <> addressCbor
           <> M.toList newCids
         either (hPrint stderr) (const $ pure ()) result
-        Right certificate <- atalaSign $ object ["marlowe-chain-index" .= show rootCid]
-        result' <-
-          publish "marlowe-ici"
-            . (<> "\n")
-            . encode
-            $ object
-              [
-                "CID"         .= show rootCid
-              , "slot"        .= slotNo
-              , "block"       .= blockNo
-              , "hash"        .= blockHash
-              , "latest"      .= newAddresses
-              , "certificate" .= certificate
-              ]
-        either (hPrint stderr) (const $ pure ()) result'
+        unless (current < startReporting)
+          $ do
+            Right certificate <- atalaSign $ object ["marlowe-chain-index" .= show rootCid]
+            result' <-
+              publish "marlowe-ici"
+                . (<> "\n")
+                . encode
+                $ object
+                  [
+                    "CID"         .= show rootCid
+                  , "slot"        .= slotNo
+                  , "block"       .= blockNo
+                  , "hash"        .= blockHash
+                  , "latest"      .= newAddresses
+                  , "certificate" .= certificate
+                  ]
+            either (hPrint stderr) (const $ pure ()) result'
         putStrLn $ "CID " <> show rootCid <> ", Slot " <> show slotNo <> ", Block " <> show blockNo <> ", Hash " <> BS8.unpack (serialiseToRawBytesHex blockHash)
 
 

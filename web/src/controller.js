@@ -54,8 +54,8 @@ const swarms = [
   ],
   [ // MODE_BROWSE_STATIC
     "/dns4/substrate.functionally.dev/tcp/4009/wss/p2p-webrtc-star/",
-    "/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star"  ,
-    "/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star"  ,
+//  "/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star"  ,
+//  "/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star"  ,
   ]
 ]
 
@@ -180,8 +180,8 @@ export async function initialize(theTopic) {
     uiPeers.innerHTML = "<ul>" + peers.reverse().map(peer => "<li class='pre'>" + (peer.addr.toString().indexOf('/p2p/') >= 0 ? peer.addr : peer.addr + "/p2p/" + peer.peer) + "</li>").join("") + "</ul>"
   }, 5000)
 
-  setTimeout( async () => { await connectHomes() },   5000)
-  setInterval(async () => { await connectHomes() }, 150000)
+  setTimeout( async () => { await connectHomes() },  5000)
+  setInterval(async () => { await connectHomes() }, 60000)
 
   subscribe()
 

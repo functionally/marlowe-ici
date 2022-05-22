@@ -115,6 +115,7 @@ export function copyCertificate() {
 }
 
 export async function subscribe() {
+  console.info("Subscribing to topic: " + topic)
   await ipfs.pubsub.subscribe(topic, updateTip)
 }
 
@@ -181,8 +182,8 @@ export async function initialize(theTopic) {
   uiId.innerText = info.id
   uiAddresses.innerHTML = "<ul>" + info.addresses.map(address => "<li class='pre'>" + address + "</li>").join("") + "</ul>"
 
-  setInterval(async () => { await connectHomes() }, 5000)
+  setInterval(connectHomes, 5000)
 
-  subscribe()
+  setTimeout(subscribe, 7500)
 
 }

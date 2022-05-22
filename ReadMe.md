@@ -3,7 +3,13 @@ IPLD Chain Index for Marlowe
 
 This application is a decentralized, distributed chain index for [Marlowe](https://marlowe-finance.io/) transactions on the [Cardano blockchain](https://cardano.org/).
 
-The application is deployed on [IPFS](https://ipfs.io/) at <[ipns://k51qzi5uqu5dlg4r3olegweltx6f64rlietex6kmfl4kq00heyqvwhrbaofbg0](https://substrate.functionally.dev:4010/ipns/k51qzi5uqu5dlg4r3olegweltx6f64rlietex6kmfl4kq00heyqvwhrbaofbg0)> and on GitHub Pages at <[https://marlowe-ici.functionally.io](https://marlowe-ici.functionally.io/)>. The application may be accessed through any [IPFS gateway](https://ipfs.github.io/public-gateway-checker/), but fetching the content over the IPFS network may take some time.
+The application is deployed on [IPFS](https://ipfs.io/) at <[ipns://k51qzi5uqu5dlg4r3olegweltx6f64rlietex6kmfl4kq00heyqvwhrbaofbg0](https://substrate.functionally.dev:4010/ipns/k51qzi5uqu5dlg4r3olegweltx6f64rlietex6kmfl4kq00heyqvwhrbaofbg0)> and on GitHub Pages at <[https://marlowe-ici.functionally.io](https://marlowe-ici.functionally.io/)>. The application may be accessed through any [IPFS gateway](https://ipfs.github.io/public-gateway-checker/), but fetching the content over the IPFS network may take some time. These swarm addresses are the primary producers of the index and may be used with `ipfs swarm connect` (or equivalent) to speed discovery:
+
+*   `/dns4/substrate.functionally.dev/tcp/4001/p2p/12D3KooWAX1YJxFMBvvayA8d7adVnieKqcqEYhEJTG1gQghUJt8h`
+*   `/dns4/substrate.functionally.dev/tcp/4002/ws/p2p/12D3KooWAX1YJxFMBvvayA8d7adVnieKqcqEYhEJTG1gQghUJt8h`
+*   `/dns4/substrate.functionally.dev/udp/4001/quic/p2p/12D3KooWAX1YJxFMBvvayA8d7adVnieKqcqEYhEJTG1gQghUJt8h`
+*   `/dns4/substrate.functionally.dev/tcp/4008/wss/p2p/12D3KooWAX1YJxFMBvvayA8d7adVnieKqcqEYhEJTG1gQghUJt8h`
+
 
 
 Indexer

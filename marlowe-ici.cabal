@@ -1,71 +1,34 @@
-cabal-version      : 3.0
-name               : marlowe-ici
-version            : 0.1.1.1
-synopsis           : An IPFS chain index for Marlowe.
-license            : Apache-2.0
-license-file       : LICENSE
-author             : Brian W Bush <brian.bush@iohk.io>
-maintainer         : Brian W Bush <brian.bush@iohk.io>
-category           : Network
-build-type         : Simple
-extra-source-files : ReadMe.md
+cabal-version:      3.0
+name:               marlowe-ici
+version:            0.1.1.1
+synopsis:           An IPFS chain index for Marlowe.
+license:            Apache-2.0
+license-file:       LICENSE
+author:             Brian W Bush <brian.bush@iohk.io>
+maintainer:         Brian W Bush <brian.bush@iohk.io>
+category:           Network
+build-type:         Simple
+extra-source-files: ReadMe.md
 
 library
-    exposed-modules : Language.Marlowe.ICI
-                      Language.Marlowe.ICI.Cbor
-                      Language.Marlowe.ICI.Ipfs
-                      Language.Marlowe.ICI.Ipld
-                      Language.Marlowe.ICI.PTree
-                      Language.Marlowe.ICI.PTree.Ipld
-    hs-source-dirs  : src
-    build-depends   : base >= 4.9 && < 5
-                    , aeson
-                    , aeson-pretty
-                    , base16-bytestring
-                    , base64-bytestring
-                    , bech32
-                    , binary
-                    , bytestring
-                    , cardano-api
-                    , cborg
-                    , cborg-json
-                    , containers
-                    , cryptonite
-                    , data-default
-                    , directory
-                    , extra
-                    , filepath
-                    , flat
-                    , ipld-cid
-                    , leb128-binary
-                    , marlowe
-                    , marlowe-cli
-                    , memory
-                    , mtl
-                    , multihash-cryptonite
-                    , optparse-applicative
-                    , plutus-ledger
-                    , plutus-ledger-api
-                    , serialise
-                    , shake
-                    , split
-                    , strict-containers
-                    , text
-                    , transformers
-                    , transformers-except
-                    , unix-compat
-                    , unordered-containers
-  default-language  : Haskell2010
-  ghc-options       : -Wall
+  exposed-modules:
+    Language.Marlowe.ICI
+    Language.Marlowe.ICI.Cbor
+    Language.Marlowe.ICI.Ipfs
+    Language.Marlowe.ICI.Ipld
+    Language.Marlowe.ICI.PTree
+    Language.Marlowe.ICI.PTree.Ipld
+
+  hs-source-dirs:   src
+  build-depends:    base >=4.9 && <5
+  default-language: Haskell2010
+  ghc-options:      -Wall
 
 executable marlowe-ici
-  main-is           : Main.hs
-  hs-source-dirs    : app
-  build-depends     : base >= 4.9 && < 5
-                    , cardano-api
-                    , marlowe
-                    , marlowe-cli
-                    , marlowe-ici
-                    , mtl
-                    , text
-  ghc-options       : -Wall
+  main-is:        Main.hs
+  hs-source-dirs: app
+  build-depends:
+    , base >=4.9 && <5
+    , marlowe-ici
+
+  ghc-options:    -Wall

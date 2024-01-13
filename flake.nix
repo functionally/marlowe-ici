@@ -1,40 +1,47 @@
 {
   description = "Marlowe ICI";
-  inputs.haskellNix.url = "github:input-output-hk/haskell.nix";
-  inputs.nixpkgs.follows = "haskellNix/nixpkgs-unstable";
-  inputs.flake-utils.url = "github:numtide/flake-utils";
-  outputs = { self, nixpkgs, flake-utils, haskellNix }:
-    flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
-    let
-      overlays = [ haskellNix.overlay
-        (final: prev: {
-          # This overlay adds our project to pkgs
-          marloweICI =
-            final.haskell-nix.project' {
-              src = ./.;
-              compiler-nix-name = "ghc8107";
-              # This is used by `nix develop .` to open a shell for use with `cabal`, `hlint` and `haskell-language-server`
-              shell.tools = {
-                cabal                   = {};
-                ghcid                   = {};
-                haskell-language-server = {};
-                hie-bios                = {};
-                hlint                   = {};
-                pointfree               = {};
-              };
-              # Non-Haskell shell tools go here
-              shell.buildInputs = with pkgs; [
-                nodejs-17_x
-                go_1_17
-              ];
-            };
-        })
-      ];
-      pkgs = import nixpkgs { inherit system overlays; inherit (haskellNix) config; };
-      flake = pkgs.marloweICI.flake {
-      };
-    in flake // {
-      # Built by `nix build .` or `nix build .#marlowe-ici:exe:marlowe-ici`.
-      defaultPackage = flake.packages."marlowe-ici:exe:marlowe-ici";
-    });
+
+  inputs = {
+    iogx = {
+      url = "github:input-output-hk/iogx";
+      inputs.hackage.follows = "hackage";
+      inputs.CHaP.follows = "CHaP";
+      inputs.haskell-nix.follows = "haskell-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nixpkgs.follows = "haskell-nix/nixpkgs";
+
+    hackage = {
+      url = "github:input-output-hk/hackage.nix";
+      flake = false;
+    };
+
+    CHaP = {
+      url = "github:input-output-hk/cardano-haskell-packages?ref=repo";
+      flake = false;
+    };
+
+    haskell-nix = {
+      url = "github:input-output-hk/haskell.nix";
+      inputs.hackage.follows = "hackage";
+    };
+  };
+
+  outputs = inputs: inputs.iogx.lib.mkFlake {
+    inherit inputs;
+    repoRoot = ./.;
+    systems = [ "x86_64-linux" "x86_64-darwin" "aarch64-darwin" ];
+    outputs = import ./nix/outputs.nix;
+  };
+
+  nixConfig = {
+    extra-substituters = [
+      "https://cache.iog.io"
+    ];
+    extra-trusted-public-keys = [
+      "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ="
+    ];
+    allow-import-from-derivation = true;
+  };
 }

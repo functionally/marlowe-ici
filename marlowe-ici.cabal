@@ -20,7 +20,45 @@ library
     Language.Marlowe.ICI.PTree.Ipld
 
   hs-source-dirs:   src
-  build-depends:    base >=4.9 && <5
+  build-depends:
+    , aeson
+    , aeson-pretty
+    , base >=4.9 && <5
+    , base16-bytestring
+    , base64-bytestring
+    , bech32
+    , binary
+    , bytestring
+    , cardano-api
+    , cborg
+    , cborg-json
+    , containers
+    , cryptonite
+    , data-default
+    , directory
+    , extra
+    , filepath
+    , flat
+    , leb128-binary ==0.1.2
+    , marlowe-cardano ==0.2.1.0
+    , memory
+    , mtl
+    , multihash-cryptonite
+    , optparse-applicative
+    , plutus-ledger-api
+    , serialise
+    , shake
+    , split
+    , strict-containers
+    , text
+    , transformers
+    , transformers-except
+    , unix-compat
+    , unordered-containers
+
+  --                  , ipld-cid
+  --                  , marlowe-cli == 0.0.6
+  --                  , plutus-ledger
   default-language: Haskell2010
   ghc-options:      -Wall
 
@@ -29,6 +67,11 @@ executable marlowe-ici
   hs-source-dirs: app
   build-depends:
     , base >=4.9 && <5
+    , cardano-api
+    , marlowe-cardano
     , marlowe-ici
+    , mtl
+    , text
 
+  --                  , marlowe-cli == 0.0.6
   ghc-options:    -Wall

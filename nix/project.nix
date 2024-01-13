@@ -13,6 +13,7 @@ let
     modules = [{
       packages = {
         marlowe-ici.ghcOptions = [ "-Werror" ];
+        strict-containers.ghcOptions = [ "-Wno-noncanonical-monad-instances" "-Wno-error=noncanonical-monad-instances" ];
       };
     }];
   });

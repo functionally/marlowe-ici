@@ -1,0 +1,26 @@
+
+https://github.com/libp2p/js-libp2p-webrtc-star/blob/master/packages/webrtc-star-signalling-server/test/sig-server.ts
+/ip4/127.0.0.1/tcp/9090/ws/p2p-webrtc-star/ipfs/${id}
+
+
+https://blog.ipfs.io/2021-06-10-guide-to-ipfs-connectivity-in-browsers/#usage-2
+/dns4/star.thedisco.zone/tcp/9090/wss/p2p-webrtc-star
+
+
+https://github.com/libp2p/go-libp2p-relay-daemon
+
+
+https://docs.libp2p.io/concepts/circuit-relay/
+/ip4/7.7.7.7/tcp/55555/p2p/QmRelay/p2p-circuit/p2p/QmAlice
+
+
+https://github.com/ipfs-examples/js-ipfs-examples/blob/301dfd4f1859572506df3633271bc901e8af759c/examples/browser-exchange-files/src/app.js
+
+
+
+signalling server:
+~/go/bin/libp2p-relay-daemon -config config
+
+
+webrtc-star server:
+npx webrtc-star

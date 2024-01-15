@@ -7,8 +7,13 @@ import * as CLIENT     from "ipfs-http-client"
 import * as WS         from "libp2p-websockets"
 import * as renderjson from "renderjson"
 
-import { CID       } from "multiformats/cid"
-import { Multiaddr } from "multiaddr"
+import { CID            } from "multiformats/cid"
+import { MPLEX          } from 'libp2p-mplex'
+import { Multiaddr      } from "multiaddr"
+import { NOISE          } from 'libp2p-noise'
+import { WebSockets     } from 'libp2p-websockets'
+import { encode, decode } from "@ipld/dag-cbor"
+import { WebRTCStar     } from "libp2p-webrtc-star"
 
 
 const filters = require('libp2p-websockets/src/filters')
@@ -16,58 +21,23 @@ const filters = require('libp2p-websockets/src/filters')
 const transportKey = WS.prototype[Symbol.toStringTag]
 
 
-export let topic = "marlowe-ici"
+export const topic = "marlowe-ici"
 
-export const MODE_SERVE_LOCAL    = 0
-export const MODE_BROWSE_LOCAL   = 1
-export const MODE_BROWSE_STATIC  = 2
-export const MODE_BROWSE_LIMITED = 3
+const ipfsInBrowser = true
 
-export const mode = MODE_BROWSE_STATIC
+export const home = "/ip4/127.0.0.1/tcp/5001"
 
-const home = "/ip4/127.0.0.1/tcp/5001"
-
-const homes = [
-  [ // MODE_SERVE_LOCAL
-  ],
-  [ // MODE_BROWSE_LOCAL
-    "/ip4/127.0.0.1/tcp/4011/ws/p2p/QmSCkKmKjYmPVQGaSRFRjKG28xz5iK3zPK6uCcEE4nxMPB"      , // oryx ipfs
-    "/ip4/127.0.0.1/tcp/4003/ws/p2p/12D3KooWDur2A4JM46Kcay71FgVMjRmgHsvN5iFswiHghCtoQYHA", // oryx relay
-    "/ip4/192.168.86.42/tcp/4011/ws/p2p/QmeTpDf65kim2LsRDcRRWmsGkqZWqMB2GzfrPpckN1vuym"  , // gazelle ipfs
-  ],
-  [ // MODE_BROWSE_STATIC
-    "/dns4/substrate.functionally.dev/tcp/4008/wss/p2p/12D3KooWAX1YJxFMBvvayA8d7adVnieKqcqEYhEJTG1gQghUJt8h",
-  ],
-  [ // MODE_BROWSE_LIMITED
-    "/dns4/substrate.functionally.dev/tcp/4008/wss/p2p/12D3KooWAX1YJxFMBvvayA8d7adVnieKqcqEYhEJTG1gQghUJt8h",
-  ],
+export const homes = [
+  "/ip4/127.0.0.1/tcp/4011/ws/p2p/QmSCkKmKjYmPVQGaSRFRjKG28xz5iK3zPK6uCcEE4nxMPB",       // oryx ipfs
+//"/ip4/127.0.0.1/tcp/4003/ws/p2p/12D3KooWDur2A4JM46Kcay71FgVMjRmgHsvN5iFswiHghCtoQYHA", // oryx relay
+  "/ip4/192.168.86.42/tcp/4011/ws/p2p/QmeTpDf65kim2LsRDcRRWmsGkqZWqMB2GzfrPpckN1vuym",   // gazelle ipfs
+  "/dns4/substrate.functionally.dev/tcp/4002/ws/p2p/12D3KooWAX1YJxFMBvvayA8d7adVnieKqcqEYhEJTG1gQghUJt8h",
 ]
 
-const swarms = [
-  [ // MODE_SERVE_LOCAL
-  ],
-  [ // MODE_BROWSE_LOCAL
-    "/dns4/substrate.functionally.dev/tcp/4009/wss/p2p-webrtc-star/",
-    "/dns4/substrate.functionally.dev/tcp/4005/ws/p2p-webrtc-star/" ,
-    "/ip4/127.0.0.1/tcp/4005/wss/p2p-webrtc-star"                   ,
-  ],
-  [ // MODE_BROWSE_STATIC
-    "/dns4/substrate.functionally.dev/tcp/4009/wss/p2p-webrtc-star/",
-    "/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star"  ,
-    "/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star"  ,
-  ],
-  [ // MODE_BROWSE_LIMITED
-    "/dns4/substrate.functionally.dev/tcp/4009/wss/p2p-webrtc-star/",
-  ],
-]
 
-const modes = [
-  filters.all       , // MODE_SERVE_LOCAL
-  filters.dnsWsOrWss, // MODE_BROWSE_LOCAL
-  filters.dnsWss    , // MODE_BROWSE_STATIC
-  filters.dnsWss    , // MODE_BROWSE_LIMITED
-]
-
+async function connectHomes() {
+  Promise.all(homes.map(address => ipfs.swarm.connect(address)))
+}
 
 export function makeCID(cid) {
   return CID.parse(cid)
@@ -77,13 +47,10 @@ export function makeMultiaddr(address) {
   return new Multiaddr(address)
 }
 
+
 export async function connect(address) {
   const result = await ipfs.swarm.connect(address)
-  console.debug(result)
-}
-
-function toAddress(peer) {
-  return peer.addr.toString().indexOf('/p2p/') >= 0 ? peer.addr.toString() : peer.addr + "/p2p/" + peer.peer
+  console.info(result)
 }
 
 
@@ -96,94 +63,91 @@ function updateTip(msg) {
   if (tip.slot) {
     uiSlotNo.innerText = tip.slot
     uiBlockNo.innerText = tip.block
-    uiBlockHash.innerHTML = "<a target='marlowe-ici' href='https://explorer.dev.testnet.marlowe-finance.io/en/block?id=" + tip.hash + "'>" + tip.hash + "</a>"
-    uiIndexCid.innerHTML = "<a target='marlowe-ici' href='https://substrate.functionally.dev:4010/ipfs/bafybeihcyruaeza7uyjd6ugicbcrqumejf6uf353e5etdkhotqffwtguva/#/explore/ipfs/" + tip.CID + "'>" + tip.CID + "</a>"
-    if (tip.latest.length > 0)
-      uiMarloweEvent.prepend(renderjson(tip.latest[0]))
-    const certificate = JSON.stringify(tip.certificate)
-    uiCertificate.innerText = certificate.slice(0, 30) + "....." + certificate.slice(-30)
-    uiClipboard.value = certificate
+    uiBlockHash.innerText = tip.hash
+    uiIndexCid.innerHTML = "<a href='http://127.0.0.1:5001/ipfs/bafybeihcyruaeza7uyjd6ugicbcrqumejf6uf353e5etdkhotqffwtguva/#/explore/ipfs/" + tip.CID + "' target='_blank'>" + tip.CID + "</a>"
+    if (tip.addresses.length > 0)
+//    uiMarloweEvent.innerText = JSON.stringify(tip.addresses, null, 2)
+      uiMarloweEvent.prepend(renderjson(tip.addresses[0]))
   } else
-    console.warn("Unexpected message on \"" + topic + "\" topic.", msg.data)
-}
-
-export function copyCertificate() {
-  uiClipboard.style.display = "inline"
-  uiClipboard.select()
-  document.execCommand("copy")
-  uiClipboard.style.display = "none"
+    console.warn("Unexpected message on \"marlowe-ici\" topic.", msg.data)
 }
 
 export async function subscribe() {
-  console.info("Subscribing to topic: " + topic)
   await ipfs.pubsub.subscribe(topic, updateTip)
-}
-
-
-let counter = 0
-
-async function connectHomes() {
-  const peers = (await ipfs.swarm.peers()).map(toAddress)
-  uiPeers.innerHTML = "<ul>" + peers.reverse().map(peer => "<li class='pre'>" + peer + "</li>").join("") + "</ul>"
-  const force = ++counter % 6 == 1
-  async function ensureConnection(address) {
-    if (peers.includes(address)) {
-      if (force) {
-        console.debug("Reconnecting home peer " + address)
-        ipfs.swarm.disconnect(address).then(ipfs.swarm.connect(address))
-      }
-    } else {
-      console.info("Reconnecting lost home peer " + address)
-      ipfs.swarm.connect(address)
-    }
-  }
-  await Promise.all(homes[mode].map(ensureConnection))
 }
 
 
 export let ipfs = null
 
-export async function initialize(theTopic) {
+export async function initialize() {
 
-  topic = theTopic
-  uiTopic.innerText = topic
-
-  renderjson.set_icons('⊞', '⊟')
-
-  if (mode == MODE_SERVE_LOCAL)
-    ipfs = CLIENT.create(home)
-  else
+  if (ipfsInBrowser)
     ipfs = await IPFS.create({
       preload: {
         enabled: false
       },
+      modules: {
+        transport: [WebSockets, WebRTCStar],
+        streamMuxer: [MPLEX],
+        connEncryption: [NOISE]
+      },
       repo: 'marlowe-ici-' + Math.random(),
       libp2p: {
         config: {
+          peerDiscovery: {
+            autoDial: true,
+            webRTCStar: {
+              enabled: true
+            }
+          },
           transport: {
             [transportKey]: {
-              filter: modes[mode]
-            },
+              // FIXME: Remove to limit to DNS or WSS.
+              filter: filters.all
+//            filter: filters.dnsWss
+//            filter: filters.dnsWsOrWss
+            }
           },
           pubsub: {
             enabled: true
-          },
-        },
+          }
+        }
       },
       config: {
         Addresses: {
-          Bootstrap: [],
-          Swarm: swarms[mode],
-        },
+          Bootstrap: [
+          ],
+          Swarm: [
+            "/dns4/substrate.functionally.dev/tcp/4008/ws/p2p-webrtc-star/",
+            "/dns4/substrate.functionally.dev/tcp/4009/wss/p2p-webrtc-star/",
+//          "/ip4/127.0.0.1/tcp/9090/wss/p2p-webrtc-star",
+//          "/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
+//          "/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
+          ]
+        }
       },
+      relay: {
+        enabled: true,
+        hop: {
+          enabled: true
+        }
+      }
     })
+  else
+    ipfs = CLIENT.create(home)
 
   const info = await ipfs.id()
   uiId.innerText = info.id
   uiAddresses.innerHTML = "<ul>" + info.addresses.map(address => "<li class='pre'>" + address + "</li>").join("") + "</ul>"
 
-  setInterval(connectHomes, 5000)
+  setInterval(async () => {
+    const peers = await ipfs.swarm.peers()
+    uiPeers.innerHTML = "<ul>" + peers.reverse().map(peer => "<li class='pre'>" + (peer.addr.toString().indexOf('/p2p/') >= 0 ? peer.addr : peer.addr + "/p2p/" + peer.peer) + "</li>").join("") + "</ul>"
+  }, 5000)
 
-  setTimeout(subscribe, 7500)
+  await connectHomes()
+  setInterval(async () => { await connectHomes() }, 150000)
+
+  subscribe()
 
 }

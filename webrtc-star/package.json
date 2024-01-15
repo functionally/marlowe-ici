@@ -1,5 +1,0 @@
-{
-  "dependencies": {
-    "libp2p-webrtc-star-signalling-server": "^0.1.2"
-  }
-}

@@ -29,8 +29,9 @@ export const home = "/ip4/127.0.0.1/tcp/5001"
 
 export const homes = [
   "/ip4/127.0.0.1/tcp/4011/ws/p2p/QmSCkKmKjYmPVQGaSRFRjKG28xz5iK3zPK6uCcEE4nxMPB",       // oryx ipfs
-  "/ip4/127.0.0.1/tcp/4003/ws/p2p/12D3KooWDur2A4JM46Kcay71FgVMjRmgHsvN5iFswiHghCtoQYHA", // oryx relay
-//"/ip4/192.168.86.42/tcp/4011/ws/p2p/QmeTpDf65kim2LsRDcRRWmsGkqZWqMB2GzfrPpckN1vuym",   // gazelle ipfs
+//"/ip4/127.0.0.1/tcp/4003/ws/p2p/12D3KooWDur2A4JM46Kcay71FgVMjRmgHsvN5iFswiHghCtoQYHA", // oryx relay
+  "/ip4/192.168.86.42/tcp/4011/ws/p2p/QmeTpDf65kim2LsRDcRRWmsGkqZWqMB2GzfrPpckN1vuym",   // gazelle ipfs
+  "/dns4/substrate.functionally.dev/tcp/4002/ws/p2p/12D3KooWAX1YJxFMBvvayA8d7adVnieKqcqEYhEJTG1gQghUJt8h",
 ]
 
 
@@ -117,7 +118,9 @@ export async function initialize() {
           Bootstrap: [
           ],
           Swarm: [
-            "/ip4/127.0.0.1/tcp/9090/wss/p2p-webrtc-star",
+            "/dns4/substrate.functionally.dev/tcp/4008/ws/p2p-webrtc-star/",
+            "/dns4/substrate.functionally.dev/tcp/4009/wss/p2p-webrtc-star/",
+//          "/ip4/127.0.0.1/tcp/9090/wss/p2p-webrtc-star",
 //          "/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
 //          "/dns4/wrtc-star2.sjc.dwebops.pub/tcp/443/wss/p2p-webrtc-star",
           ]

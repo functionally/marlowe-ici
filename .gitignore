@@ -6,3 +6,4 @@ dist-newstyle/
 *.socket
 *.point
 go-libp2p-relay-daemon/
+.pre-commit-config.yaml

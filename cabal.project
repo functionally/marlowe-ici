@@ -32,6 +32,12 @@ tests: False
 benchmarks: False
 optimization: False
 
+source-repository-package
+  type: git
+  location: https://github.com/singpolyma/base32-z-bytestring
+  tag: 594f53d245f4ecde710dd720b9ac490b855c0f04
+  --sha256: 19s6nrmmkkcn999msdcpv166qqf002mp3hh35s371y5in4bf0g02
+
 flags: +defer-plugin-errors
 
 write-ghc-environment-files: never

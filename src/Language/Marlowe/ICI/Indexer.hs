@@ -69,14 +69,14 @@ runIndexer
   -> Int
   -> Int
   -> StateT Index m ()
-runIndexer channel ipfsKey chunkSize outputBatch =
+runIndexer channel ipnsKey chunkSize batchSize =
   do
     (tip, header) <- nextBlock channel
     n <- gets $ M.size . newCids
     let report = slotNo header >= tip
-    when (report || n >= outputBatch) $
-      outputIndex ipfsKey chunkSize report header
-    runIndexer channel ipfsKey chunkSize outputBatch
+    when (report || n >= batchSize) $
+      outputIndex ipnsKey chunkSize report header
+    runIndexer channel ipnsKey chunkSize batchSize
 
 outputIndex
   :: (MonadIO m)
@@ -85,7 +85,7 @@ outputIndex
   -> Bool
   -> BlockHeader
   -> StateT Index m ()
-outputIndex ipfsKey chunkSize report header =
+outputIndex ipnsKey chunkSize report header =
   do
     newCids' <- gets $ M.toList . newCids
     contractCbor <- gets $ PT.toCBOR chunkSize . contractIndex
@@ -121,7 +121,7 @@ outputIndex ipfsKey chunkSize report header =
                       <> addressCbor
                       <> newCids'
                 )
-          rename ipfsKey "20s" ("/ipfs/" <> show rootCid)
+          rename ipnsKey "20s" ("/ipfs/" <> show rootCid)
             >>= either
               (hPrint stderr . ("Slot " <>) . (slotNo' <>) . (": " <>))
               ( const . hPutStrLn stderr $

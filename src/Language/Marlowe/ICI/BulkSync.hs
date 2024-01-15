@@ -26,13 +26,13 @@ makeBulkSync
   :: SlotNo
   -> Word8
   -> IO (TChan (SlotNo, MarloweBlock), MarloweT IO (), IO ())
-makeBulkSync reportSlot pageSize =
+makeBulkSync batchSlot pageSize =
   do
     channel <- newTChanIO
     stop <- newTVarIO False
     pure
       ( channel
-      , runBulkSync pageSize channel stop reportSlot
+      , runBulkSync pageSize channel stop batchSlot
       , atomically $ writeTVar stop True
       )
 
@@ -42,14 +42,14 @@ runBulkSync
   -> TVar Bool
   -> SlotNo
   -> MarloweT IO ()
-runBulkSync initialPageSize channel stop reportSlot =
+runBulkSync initialPageSize channel stop batchSlot =
   let next =
         ClientStNext
           { recvMsgRollForward = \blocks BlockHeader{slotNo = tip} ->
               do
                 liftIO . atomically $ forM_ blocks $ writeTChan channel . (tip,)
                 let currentSlot = slotNo . blockHeader $ last blocks
-                    newPageSize = if currentSlot <= reportSlot then initialPageSize else 1
+                    newPageSize = if currentSlot <= batchSlot then initialPageSize else 1
                 pure $ SendMsgRequestNext newPageSize next
           , recvMsgRollBackward = \_ _ -> pure $ SendMsgRequestNext 1 next
           , recvMsgWait =

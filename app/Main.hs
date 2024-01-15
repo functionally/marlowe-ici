@@ -15,15 +15,15 @@ main :: IO ()
 main =
   do
     Command{..} <- O.execParser commandParser
-    run host port ipfsKey chunkSize outputBatch $ fromInteger tipHint
+    run host port ipnsKey chunkSize batchSize $ fromInteger batchSlot
 
 data Command = Command
   { host :: String
   , port :: Int
-  , ipfsKey :: String
+  , ipnsKey :: String
   , chunkSize :: Int
-  , outputBatch :: Int
-  , tipHint :: Integer
+  , batchSize :: Int
+  , batchSlot :: Integer
   }
   deriving (Show)
 
@@ -55,7 +55,7 @@ commandParser =
             )
           <*> O.option
             O.auto
-            ( O.long "batch-size"
+            ( O.long "batch-slot"
                 <> O.value 35000000
                 <> O.metavar "SLOT_NO"
                 <> O.help "The last slot for batching IPLD puts."

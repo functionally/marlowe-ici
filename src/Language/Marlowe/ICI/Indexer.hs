@@ -98,7 +98,7 @@ outputIndex ipnsKey chunkSize report header =
           either (hPutStrLn stderr . ("Slot " <>) . (slotNo' <>) . (": " <>))
             . const
             . hPutStrLn stderr
-            $ "Slot " <> slotNo' <> ": " <> show (length newCids') <> " CIDs"
+            $ "Slot " <> slotNo' <> ": " <> show (length newCids') <> " new CIDs"
         rootCbor =
           mconcat
             [ encodeMapLen 5
@@ -125,7 +125,7 @@ outputIndex ipnsKey chunkSize report header =
             >>= either
               (hPrint stderr . ("Slot " <>) . (slotNo' <>) . (": " <>))
               ( const . hPutStrLn stderr $
-                  "Slot " <> slotNo' <> ": published " <> show (length newCids') <> " CIDs at /ipfs/" <> show rootCid
+                  "Slot " <> slotNo' <> ": published " <> show (length newCids') <> " new CIDs at /ipfs/" <> show rootCid
               )
         else
           unless (null newCids') $

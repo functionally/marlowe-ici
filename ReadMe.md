@@ -1,2 +1,2 @@
-IPFS Chain Index for Marlowe
+IPLD Chain Index for Marlowe
 ================================

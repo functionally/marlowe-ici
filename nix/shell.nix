@@ -5,7 +5,10 @@ cabalProject:
 {
   name = "marlowe-ici";
 
-  packages = [
+  packages = with pkgs; [
+    pandoc
+    ipfs
+    remarshal
   ];
 
   preCommit = {

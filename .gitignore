@@ -2,6 +2,7 @@ tmp/
 *.tmp
 *.log
 *.sw?
+doc/
 .pre-commit-config.yaml
 dist-newstyle/
 go-libp2p-relay-daemon/

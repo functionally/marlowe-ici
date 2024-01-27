@@ -27,6 +27,8 @@
       inputs.hackage.follows = "hackage";
     };
 
+    n2c.url = "github:nlewo/nix2container";
+
   };
 
   outputs = inputs: inputs.iogx.lib.mkFlake {

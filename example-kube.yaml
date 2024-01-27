@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mrx-preprod
+  labels:
+    app: mrx-preprod
+spec:
+  hostname: mrx-preprod
+  containers:
+  - name: marlowe-ici
+    image: ghcr.io/functionally/marlowe-ici:latest
+    args:
+      - --ipfs-api
+      - /ip4/192.168.0.12/tcp/5001
+      - --host
+      - mrt-preprod
+      - --port
+      - 3700
+      - --ipns-key
+      - marlowe-ici-preprod
+      - --batch-slot
+      - 48000000
+  restartPolicy: Never

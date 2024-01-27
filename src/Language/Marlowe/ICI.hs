@@ -14,14 +14,15 @@ run
   :: String
   -> Int
   -> String
+  -> String
   -> Int
   -> Int
   -> SlotNo
   -> IO ()
-run host port ipnsKey chunkSize batchSize batchSlot =
+run host port ipfsApi ipnsKey chunkSize batchSize batchSlot =
   do
     -- FIXME: Bulk sync blocks until a page is full, so we need fetch single pages
     --        in order to avoid blocking at the tip.
     (channel, startBulkSync, _) <- makeBulkSync batchSlot 100
     void . forkIO $ connectToMarloweRuntime (fromString host) (fromIntegral port) startBulkSync
-    void $ runIndexer channel ipnsKey chunkSize batchSize `runStateT` def
+    void $ runIndexer channel ipfsApi ipnsKey chunkSize batchSize `runStateT` def

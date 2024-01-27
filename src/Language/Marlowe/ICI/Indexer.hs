@@ -66,26 +66,28 @@ runIndexer
   :: (MonadIO m)
   => TChan (SlotNo, MarloweBlock)
   -> String
+  -> String
   -> Int
   -> Int
   -> StateT Index m ()
-runIndexer channel ipnsKey chunkSize batchSize =
+runIndexer channel ipfsApi ipnsKey chunkSize batchSize =
   do
     (tip, header) <- nextBlock channel
     n <- gets $ M.size . newCids
     let report = slotNo header >= tip
     when (report || n >= batchSize) $
-      outputIndex ipnsKey chunkSize report header
-    runIndexer channel ipnsKey chunkSize batchSize
+      outputIndex ipfsApi ipnsKey chunkSize report header
+    runIndexer channel ipfsApi ipnsKey chunkSize batchSize
 
 outputIndex
   :: (MonadIO m)
   => String
+  -> String
   -> Int
   -> Bool
   -> BlockHeader
   -> StateT Index m ()
-outputIndex ipnsKey chunkSize report header =
+outputIndex ipfsApi ipnsKey chunkSize report header =
   do
     newCids' <- gets $ M.toList . newCids
     contractCbor <- gets $ PT.toCBOR chunkSize . contractIndex
@@ -113,7 +115,7 @@ outputIndex ipnsKey chunkSize report header =
       if report
         then do
           either (hPutStrLn stderr . ("Slot " <>) . (slotNo' <>) . (": " <>)) (const $ pure ())
-            =<< ( putCars $
+            =<< ( putCars ipfsApi $
                     [(rootCid, toStrictByteString rootCbor), headerCbor]
                       <> contractCbor
                       <> slotCbor
@@ -121,7 +123,7 @@ outputIndex ipnsKey chunkSize report header =
                       <> addressCbor
                       <> newCids'
                 )
-          rename ipnsKey "20s" ("/ipfs/" <> show rootCid)
+          rename ipfsApi ipnsKey "20s" ("/ipfs/" <> show rootCid)
             >>= either
               (hPrint stderr . ("Slot " <>) . (slotNo' <>) . (": " <>))
               ( const . hPutStrLn stderr $
@@ -129,7 +131,7 @@ outputIndex ipnsKey chunkSize report header =
               )
         else
           unless (null newCids') $
-            status =<< putCars newCids'
+            status =<< putCars ipfsApi newCids'
     modify' $ \index -> index{newCids = mempty}
 
 nextBlock

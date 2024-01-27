@@ -14,39 +14,44 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as LBS
 
 putCars
-  :: [(CID, BS.ByteString)]
+  :: String
+  -> [(CID, BS.ByteString)]
   -> IO (Either String String)
-putCars =
-  ipfsRun ["dag", "import", "--pin-roots=false"]
+putCars ipfsApi =
+  ipfsRun ipfsApi ["dag", "import", "--pin-roots=false"]
     . Just
     . toCAR
 
 publish
   :: String
+  -> String
   -> LBS.ByteString
   -> IO (Either String String)
-publish topic =
-  ipfsRun ["pubsub", "pub", topic]
+publish ipfsApi topic =
+  ipfsRun ipfsApi ["pubsub", "pub", topic]
     . Just
 
 rename
   :: String
   -> String
   -> String
+  -> String
   -> IO (Either String String)
-rename key ttl value =
-  ipfsRun ["name", "publish", "--key=" <> key, "--ttl=" <> ttl, value] Nothing
+rename ipfsApi key ttl value =
+  ipfsRun ipfsApi ["name", "publish", "--key=" <> key, "--ttl=" <> ttl, value] Nothing
 
 ipfsRun
-  :: [String]
+  :: String
+  -> [String]
   -> Maybe LBS.ByteString
   -> IO (Either String String)
-ipfsRun arguments input =
+ipfsRun ipfsApi arguments input =
   do
+    let arguments' = ["--api", ipfsApi] <> arguments
     (Exit code, Stdout result, Stderr msg) <-
       case input of
-        Nothing -> cmd "ipfs" arguments
-        Just input' -> cmd (StdinBS input') "ipfs" arguments
+        Nothing -> cmd "ipfs" arguments'
+        Just input' -> cmd (StdinBS input') "ipfs" arguments'
     case code of
       ExitFailure _ -> pure $ Left msg
       ExitSuccess -> pure $ Right result

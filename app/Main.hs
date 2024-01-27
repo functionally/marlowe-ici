@@ -15,11 +15,12 @@ main :: IO ()
 main =
   do
     Command{..} <- O.execParser commandParser
-    run host port ipnsKey chunkSize batchSize $ fromInteger batchSlot
+    run host port ipfsApi ipnsKey chunkSize batchSize $ fromInteger batchSlot
 
 data Command = Command
   { host :: String
   , port :: Int
+  , ipfsApi :: String
   , ipnsKey :: String
   , chunkSize :: Int
   , batchSize :: Int
@@ -36,6 +37,7 @@ commandParser =
           <*> O.option
             O.auto
             (O.long "port" <> O.value 3700 <> O.metavar "PORT" <> O.help "Port for Marlowe proxy service." <> O.showDefault)
+          <*> O.strOption (O.long "ipfs-api" <> O.metavar "MULTIADDR" <> O.help "The multiaddr for the IPFS API.")
           <*> O.strOption (O.long "ipns-key" <> O.metavar "KEY_NAME" <> O.help "The name of the IPNS key for publishing.")
           <*> O.option
             O.auto
@@ -62,7 +64,10 @@ commandParser =
                 <> O.showDefault
             )
    in O.info
-        (O.helper <*> (O.infoOption (showVersion version) $ O.long "version" <> O.help "Show version") <*> commandOptions)
+        ( O.helper
+            <*> (O.infoOption ("marlowe-ici " <> showVersion version) $ O.long "version" <> O.help "Show version")
+            <*> commandOptions
+        )
         ( O.fullDesc
             <> O.progDesc "This command-line tool builds and publishes IPLD indexes of Marlowe contracts and transactions."
             <> O.header "marlowe-ici : build IPLD indexes for Marlowe"
